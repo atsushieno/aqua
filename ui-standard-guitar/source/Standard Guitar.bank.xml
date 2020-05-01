@@ -1,0 +1,17 @@
+<?xml version="1.0" ?>
+<Key>3FC4F016B7AA25169C41AC1E7209C8830DB1707CB8768A6409972C22CF7AE4743B3C3A035B45977B0D93DD6F451950B01EFA30F682CE78D777079DF9909336C1C4E3A92D0C531291A20D4BB5F47F210C9298910A0A36F76CBD4DBB090271B36E8DFD5D769AE14830E4E21DF4651FE7D53C5C47492482D2E3A32C1EFA3ADE76FEE6B6EFCB64E17AD266573D786B0535F3C2126073043C6685086D66452877C9B5F296A00915C25A7A88D934A2ABDBC5C0E1A4C077BC9A3916085B442F268531BCBEC3AB893835175C9B74173AE78D7B267BF99B6803DFF6AF3FA616C5EEAE99082E7F8A184A8F37701AAC12CB8F39F7A3487F6624F7C403091013FDEA4C896859</Key>
+<AriaBank  id="2530" name="Standard Guitar" vendor="ARIA OEM" product="Standard Guitar" version="1000" >
+
+	<Define name="$sample_dir" value="../Samples"/>
+	
+	<!-- branding for Aria Player and sforzando UIs -->
+	<AriaGUI path="GUI/aria_info.xml"  target="*ARIA_INFO" />	
+ 
+    <AriaProgram  name="01-Standard Guitar KSOP"           gui="GUI/01-Standard Guitar KSOP.xml">           <AriaElement  path="Programs/01-Standard Guitar KSOP.sfz"/>           </AriaProgram>
+    <AriaProgram  name="02-Standard Guitar KSOP XTracking" gui="GUI/02-Standard Guitar KSOP XTracking.xml"> <AriaElement  path="Programs/02-Standard Guitar KSOP XTracking.sfz"/> </AriaProgram>
+    <AriaProgram  name="03-Standard Guitar VSOP"           gui="GUI/03-Standard Guitar VSOP.xml">           <AriaElement  path="Programs/03-Standard Guitar VSOP.sfz"/>           </AriaProgram>
+    <AriaProgram  name="04-Standard Guitar VSOP XTracking" gui="GUI/04-Standard Guitar VSOP XTracking.xml"> <AriaElement  path="Programs/04-Standard Guitar VSOP XTracking.sfz"/> </AriaProgram>
+    <AriaProgram  name="05-Guitar Chord Central"           gui="GUI/05-Guitar Chord Central.xml">           <AriaElement  path="Programs/05-Guitar Chord Central.sfz"/>           </AriaProgram>
+    <AriaProgram  name="06-Simple Arpeggio"                gui="GUI/06-Simple Arpeggio.xml">                <AriaElement  path="Programs/06-Simple Arpeggio.sfz"/>                </AriaProgram>
+
+</AriaBank>

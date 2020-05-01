@@ -1,0 +1,115 @@
+<html>
+<head>
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script type="text/javascript">//<!--
+		
+function onBodyLoad() {
+	
+	var bankXmlFiles = [
+		"./ui-metal-gtx/source/METAL-GTX.bank.xml",
+		"./ui-standard-guitar/source/Standard Guitar.bank.xml"
+	];
+
+	results = [];
+	
+	bankXmlFiles.map(bankXmlFile => processBankXml(bankXmlFile, programList => {
+		results.push(programList);
+		if (results.length == bankXmlFiles.length)
+			app = new Vue({
+				el: '#app',
+				data: { programList: results }
+			});
+	}));
+}
+
+function processBankXml(bankXmlFile, resolve, reject) {
+	fetch(bankXmlFile).then(response => {		
+		if (!response.ok) {
+			throw new Error("Failed to retrieve bank xml");
+		}
+		return response.blob();
+	}).then(blob => {
+		var reader = new FileReader();
+		reader.onload = () => {
+			processBankXmlBlob(bankXmlFile, reader.result, programList => {
+				resolve(programList);
+			}, reject);
+		};
+		reader.onerror = reject;
+		reader.readAsText(blob);
+	});
+}
+
+function processBankXmlBlob(bankXmlFile, bankXmlFragmentTextRaw, resolve, reject) {
+	var pattern = /<\?xml[\s]+version[\s]*=\"1.0\"[\s]*\?>/;
+	var bankXmlFragmentText = bankXmlFragmentTextRaw.replace(pattern, '');
+
+	var doc = new DOMParser().parseFromString("<dummy>" + bankXmlFragmentText + "</dummy>", "application/xml");
+
+	var ariaGuiPath = doc.documentElement.querySelector("AriaGUI").getAttribute("path");
+	var ariaGuiPathAbs = new URL(ariaGuiPath, new URL(bankXmlFile, document.baseURI));
+	
+	fetch(ariaGuiPathAbs).then (response => {
+		if (!response.ok)
+			throw new Error("Failed to retrieve AriaGUI definition file.");
+		return response.blob();
+	}).then(blob => {
+		var reader = new FileReader();
+		reader.onload = () => {
+			resolve(processAriaGuiBlob(bankXmlFile, doc, ariaGuiPathAbs, reader.result));
+		};
+		reader.onerror = reject;
+		reader.readAsText(blob);
+		
+	});
+}
+
+function processAriaGuiBlob(bankXmlFile, doc, ariaGuiPathAbs, ariaGuiDocTextRaw) {
+	var ariaGuiDoc = new DOMParser().parseFromString(ariaGuiDocTextRaw, "application/xml");
+	var thumbnail = ariaGuiDoc.documentElement.querySelector("StaticImage").getAttribute("image");
+	var thumbnailAbs = new URL(thumbnail, ariaGuiPathAbs);
+
+	var programNodes = [].slice.call(doc.documentElement.getElementsByTagName("AriaProgram"));
+	var programs = programNodes.map(function(pn) {
+		var bankXmlURL = new URL(bankXmlFile, document.baseURI);
+		var genURL = new URL ("../gen/_", bankXmlURL);
+		var sourceURL = new URL(pn.getAttribute("gui").replace(".xml", ".html"), genURL);
+		return {
+			name : pn.getAttribute("name"),
+			source: sourceURL.toString()
+		};
+	});
+	var q = doc.documentElement.querySelector("AriaBank");
+	var bankName = q.getAttribute("name");
+	return {
+		name: bankName,
+		thumbnail: thumbnailAbs.toString(),
+		programList: programs
+	};
+}
+
+//--></script>
+</head>
+
+<body onload="onBodyLoad()">
+	<div id="app">
+	<table>
+		<tr>
+			<td>
+			<div v-for="pL in programList">
+				<img width="360" height="120" v-bind:src="pL.thumbnail" />
+				<ul>
+					<li v-for="p in pL.programList">
+						<a v-bind:href="p.source" target="instFrame">{{ p.name }}</a>
+					</li>
+				</ul>
+			</div>
+			</td>
+			<td>
+				<iframe width="800" height="400" name="instFrame"></iframe>
+			</td>
+		</tr>
+	</table>
+	</ul>
+</body>
+</html>

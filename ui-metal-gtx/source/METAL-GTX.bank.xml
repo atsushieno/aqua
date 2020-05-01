@@ -1,0 +1,16 @@
+<?xml version="1.0" ?>
+<Key>D86691D4AF789E0949EE0D3D1AEA4ECBF66EC7AF68BB6129D59801D261AAEF6BC39947E35DC1898BCFF4588DDC95EB420E1E7E9901D63F4B6333A8E0DA14DCBC7818AAB745876F8C70FFEEB93340C7084E37CF799E35A99291B256A9B1B7C4E3D49BD611FA5FBC402DED1D5AE883A339649771F3B66B2BF311EB6F6B1BD6559092BF5DBFC3BD5E3BF08EBB5D6EF434D9343965958E03BBFAC5401BDAE413B7D1B744739E676A04AA0DB0D4E4D939A60A18F91A49BB9D4D2C458C946123B10CD00B324F5F43E5A660F81F20C2A2A385295594E6D3FE70BF0B9B82C8230E21D4835CF34B5415EB1E0ADDA8145C06F09E9D4C67EFFB684E3902DB3CF05EBB1D1456</Key>
+<AriaBank id="2528" name="METAL-GTX" vendor="ARIA OEM" product="METAL-GTX" version="1000" >
+
+	<Define name="$sample_dir" value="../Samples"/>
+	
+	<!-- branding for Aria Player and sforzando UIs -->
+	<AriaGUI path="GUI/aria_info.xml"  target="*ARIA_INFO" />	
+ 
+	<AriaProgram  name="01-METAL-GTX"            gui="GUI/GUI_01.xml"> <AriaElement path="Programs/01-METAL-GTX Full.sfz"/></AriaProgram>
+	<AriaProgram  name="02-METAL-GTX Lite"  	 gui="GUI/GUI_02.xml"> <AriaElement path="Programs/02-METAL-GTX Lite.sfz"/></AriaProgram>
+	<AriaProgram  name="03-METAL-GTX XTracking"  gui="GUI/GUI_03.xml"> <AriaElement path="Programs/03-METAL-GTX XTracking.sfz"/></AriaProgram>
+	<AriaProgram  name="04-Guitar Chord Central" gui="GUI/GUI_04.xml"> <AriaElement path="Programs/04-Guitar Chord Central.sfz"/></AriaProgram>
+	<AriaProgram  name="05-Simple Arpeggio"      gui="GUI/GUI_05.xml"> <AriaElement path="Programs/05-Simple Arpeggio.sfz"/></AriaProgram>
+	 		
+</AriaBank>
