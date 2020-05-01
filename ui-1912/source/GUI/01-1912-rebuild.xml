@@ -1,0 +1,60 @@
+<GUI w="775" h="335">
+ 
+	<!-- StaticImage: Any png file, alpha blended. The image can contain transparency. Place first to allow other elements to show over it -->
+	<StaticImage x="0" y="0" w="775" h="330" image="Control.png" transparent="1" />
+	<StaticImage x="0" y="0" w="775" h="330" image="Control_Shadow.png" transparent="2" />
+
+	<!-- INSTRUMENT CONTROLS -->
+	
+	<Knob param="11" x="69" y="64" image="Mid_Knob1.png" frames="101"   />
+	<Knob param="20" x="148" y="64" image="Mid_Knob2.png" frames="101"   />
+	<Knob param="21" x="233" y="64" image="Mid_Knob3.png" frames="101"   />
+	<Knob param="22" x="323" y="34" image="Big_Knob.png" frames="51"   />
+	<Knob param="110" x="467" y="64" image="Mid_Knob4.png" frames="101"   />
+	<Knob param="111" x="552" y="64" image="Mid_Knob5.png" frames="101"   />
+	<Knob param="112" x="631" y="64" image="Mid_Knob6.png" frames="101"   />
+
+	<Knob param="52" x="37" y="203" image="Small_Knob1.png" frames="101"   />
+	<Knob param="53" x="113" y="203" image="Small_Knob2.png" frames="101"   />
+	<Knob param="54" x="192" y="203" image="Small_Knob3.png" frames="101"   />
+	<Knob param="55" x="269" y="203" image="Small_Knob4.png" frames="101"   />
+	<Knob param="56" x="349" y="203" image="Small_Knob5.png" frames="101"   />
+	<Knob param="200" x="423" y="203" image="Small_Knob6.png" frames="101"   />
+	<Knob param="201" x="503" y="203" image="Small_Knob7.png" frames="101"   />
+	<Knob param="202" x="581" y="203" image="Small_Knob8.png" frames="101"   />
+	<Knob param="203" x="659" y="203" image="Small_Knob9.png" frames="101"   />
+	<Knob param="204" x="735" y="203" image="Small_Knob10.png" frames="101"   />
+
+	<Knob param="58" x="37" y="243" image="Small_Knob1.png" frames="101"   />
+	<Knob param="59" x="113" y="243" image="Small_Knob2.png" frames="101"   />
+	<Knob param="60" x="192" y="243" image="Small_Knob3.png" frames="101"   />
+	<Knob param="61" x="269" y="243" image="Small_Knob4.png" frames="101"   />
+	<Knob param="62" x="349" y="243" image="Small_Knob5.png" frames="101"   />
+	<Knob param="205" x="423" y="243" image="Small_Knob6.png" frames="101"   />
+	<Knob param="206" x="503" y="243" image="Small_Knob7.png" frames="101"   />
+	<Knob param="207" x="581" y="243" image="Small_Knob8.png" frames="101"   />
+	<Knob param="208" x="659" y="243" image="Small_Knob9.png" frames="101"   />
+	<Knob param="209" x="735" y="243" image="Small_Knob10.png" frames="101"   />
+
+	<Knob param="102" x="37" y="282" image="Small_Knob1.png" frames="101"   />
+	<Knob param="103" x="113" y="282" image="Small_Knob2.png" frames="101"   />
+	<Knob param="104" x="192" y="282" image="Small_Knob3.png" frames="101"   />
+	<Knob param="105" x="269" y="282" image="Small_Knob4.png" frames="101"   />
+	<Knob param="106" x="349" y="282" image="Small_Knob5.png" frames="101"   />
+	<Knob param="210" x="423" y="282" image="Small_Knob6.png" frames="101"   />
+	<Knob param="211" x="503" y="282" image="Small_Knob7.png" frames="101"   />
+	<Knob param="212" x="581" y="282" image="Small_Knob8.png" frames="101"   />
+	<Knob param="213" x="659" y="282" image="Small_Knob9.png" frames="101"   />
+	<Knob param="214" x="735" y="282" image="Small_Knob10.png" frames="101"   />
+
+<Slider param="46"   x="13"  y="198"  w="27" h="150" orientation="vertical"    image_handle="Fader1.png" image_bg="Fader_Back.png"  />
+<Slider param="47"   x="89"  y="198"  w="27" h="150" orientation="vertical"    image_handle="Fader2.png" image_bg="Fader_Back.png"  />
+<Slider param="48"   x="164"  y="198"  w="27" h="150" orientation="vertical"    image_handle="Fader3.png" image_bg="Fader_Back.png"  />
+<Slider param="49"   x="243"  y="198"  w="27" h="150" orientation="vertical"    image_handle="Fader4.png" image_bg="Fader_Back.png"  />
+<Slider param="50"   x="319"  y="198"  w="27" h="150" orientation="vertical"    image_handle="Fader5.png" image_bg="Fader_Back.png"  />
+<Slider param="215"   x="397"  y="198"  w="27" h="150" orientation="vertical"    image_handle="Fader6.png" image_bg="Fader_Back.png"  />
+<Slider param="216"   x="473"  y="198"  w="27" h="150" orientation="vertical"    image_handle="Fader7.png" image_bg="Fader_Back.png"  />
+<Slider param="217"   x="549"  y="198"  w="27" h="150" orientation="vertical"    image_handle="Fader8.png" image_bg="Fader_Back.png"  />
+<Slider param="218"   x="627"  y="198"  w="27" h="150" orientation="vertical"    image_handle="Fader9.png" image_bg="Fader_Back.png"  />
+<Slider param="219"   x="705"  y="198"  w="27" h="150" orientation="vertical"    image_handle="Fader10.png" image_bg="Fader_Back.png"  />
+</GUI>

@@ -4,7 +4,11 @@
 
 Right now we use [Vue.js](https://vuejs.org/) but the templating part is really simple so it can be anything. Maybe we don't even need any.
 
-There are handful of great instruments with ARIA UI such as  [Unreal Instruments](https://unreal-instruments.wixsite.com/unreal-instruments). In this PoC repository we import[UI Standard Guitar](https://unreal-instruments.wixsite.com/unreal-instruments/standard-guitar) and [UI METAL GTX](https://unreal-instruments.wixsite.com/unreal-instruments/metal-gtx).
+There are handful of great instruments with ARIA UI such as  [Unreal Instruments](https://unreal-instruments.wixsite.com/unreal-instruments). In this PoC repository we import these instruments:
+
+- [UI Standard Guitar](https://unreal-instruments.wixsite.com/unreal-instruments/standard-guitar) 
+- [UI METAL GTX](https://unreal-instruments.wixsite.com/unreal-instruments/metal-gtx)
+- [UI 1912](https://unreal-instruments.wixsite.com/unreal-instruments/1912)
 
 
 ## License notice

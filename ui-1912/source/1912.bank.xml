@@ -1,0 +1,17 @@
+<?xml version="1.0" ?>
+<Key>886CA86DA684502640915C70802546DC60A67FFC7DC9AB7653FE0F800F2EEBF50B24638561B5C104CB9B5AC618CF3A51A9BE51C5AF0810284FF5260C63F3A72C0AB1E757EC04D09DAE680B0A5CAD377A2C2331A0746D3E1D1DDAFAAEC51AA6EDF1ABCF86DCB777AC2B3EE68E1DA3C3B4055CE85FBD23BEB42B8C204F6E1B137CD1D6E35F9DC2AF1F41A6FC339EF03F4959F3E9E74AF59D60712FDBBB8E7829E7AE90536D9CBCF7F9953B2A2A2DD707AC06993455DD641DBE73B41F7B2654DF524EDD74D592327DA736EE9E16CB8B05176D8EBDD48EAFBA87227F29E0A76F0A616D8A0A29CF1650457D7E2A07F76A298714028988C4BEF9E5FC1E79666E5D46C7</Key>
+<AriaBank id="2526" name="1912" vendor="ARIA OEM" product="1912" version="1000" >
+
+	<Define name="$sample_dir" value="../Samples"/>
+	
+	<!-- branding for Aria Player and sforzando UIs -->
+	<AriaGUI path="GUI/aria_info.xml"  target="*ARIA_INFO" />	
+ 
+	<AriaProgram  name="01-1912-Rebuild" gui="GUI/01-1912-rebuild.xml"> <AriaElement  path="Programs/01-1912-rebuild.sfz"/> </AriaProgram>
+	<AriaProgram  name="02-Drone"        gui="GUI/02-drone.xml"> 		<AriaElement  path="Programs/02-drone.sfz"/>        </AriaProgram>
+	<AriaProgram  name="03-Low Strings"  gui="GUI/03-low_strings.xml">  <AriaElement  path="Programs/03-low_strings.sfz"/>  </AriaProgram>
+	<AriaProgram  name="04-High Strings" gui="GUI/04-high_strings.xml"> <AriaElement  path="Programs/04-high_strings.sfz"/> </AriaProgram>
+	<AriaProgram  name="05-Una Corda"    gui="GUI/05-una_corda.xml">    <AriaElement  path="Programs/05-una_corda.sfz"/>    </AriaProgram>
+	<AriaProgram  name="06-Soft Piano"   gui="GUI/06-soft_piano.xml">   <AriaElement  path="Programs/06-soft_piano.sfz"/>   </AriaProgram>
+
+</AriaBank>

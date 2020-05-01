@@ -1,0 +1,14 @@
+<GUI w="775" h="335">
+ 
+	<!-- StaticImage: Any png file, alpha blended. The image can contain transparency. Place first to allow other elements to show over it -->
+	<StaticImage x="0" y="0" w="775" h="330" image="Una_Corda_Control.png" transparent="1" />
+	<StaticImage x="0" y="0" w="775" h="330" image="Single_Strings_Shadow.png" transparent="2" />
+
+	<!-- INSTRUMENT CONTROLS -->
+	
+	<Knob param="20" x="309" y="78" image="Mid_Knob0.png" frames="101"   />
+	<Knob param="21" x="393" y="78" image="Mid_Knob0.png" frames="101"   />
+	<Knob param="24" x="100" y="34" image="Big_Knob_Blue.png" frames="51"   />
+	<Knob param="110" x="543" y="34" image="Big_Knob_Blue.png" frames="51"   />
+
+</GUI>
