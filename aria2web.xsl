@@ -34,7 +34,7 @@
   <xsl:template match="Knob">
 	<webaudio-knob id="knob-{@param}"
 		src="{@image}" style="position:absolute; left:{@x}px; top:{@y}px" 
-		value="0" max="{@frames}" step="1" sprites="{@frames - 1}">
+		value="0" max="{@frames}" step="1" sprites="{@frames - 1}" diameter="-1">
 	&#10;
 	</webaudio-knob>
   </xsl:template>
@@ -58,6 +58,10 @@
 		src="{@image}" style="position:absolute; left:{@x}px; top:{@y}px">
 	&#10;
 	</webaudio-switch>
+  </xsl:template>
+
+  <xsl:template match="*">
+	<xsl:message>Unknown element: <xsl:copy-of select="name()" /></xsl:message>
   </xsl:template>
 
 </xsl:transform>

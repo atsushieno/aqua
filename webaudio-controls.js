@@ -371,8 +371,28 @@ webaudio-knob{
     }
     disconnectedCallback(){}
     setupImage(){
-      this.kw=this.width||this.diameter;
-      this.kh=this.height||this.diameter;
+      this.kw=this.dynamicwidth||this.width||this.diameter;
+      this.kh=this.dynamicheight||this.height||this.diameter;
+      if(this.src && this.sprites && this.kw < 0) {
+        // It is an ugly hack to support "content based" sizing of knobs.
+        // **IF** diameter is less than 0, then it will be content based.
+        // Since we cannot get the image sizes until it is loaded, while this setup function is
+        // not asynchronous, we only set up a dummy image to acquire sizes and call `setupImage()`
+        // in its "loaded" callback.
+        // (It should be also noted that there is no "onload" events for CSS background image)
+        //
+        // FIXME: this will fail to update image if src is changed and it is sized based on the image content.
+        this.sizecalcimg = new Image();
+        this.sizecalcimg.onload = () => {
+          this.dynamicwidth = this.sizecalcimg.naturalWidth;
+          this.dynamicheight = this.sizecalcimg.naturalHeight / (this.sprites + 1);
+          this._width = this.dynamicwidth;
+          this._height = this.dynamicheight;
+          this.setupImage();
+        };
+        this.sizecalcimg.src = this.src;
+        return;
+      }
       if(!this.src){
         if(this.colors)
           this.coltab = this.colors.split(";");
