@@ -962,8 +962,23 @@ webaudio-switch{
     }
     disconnectedCallback(){}
     setupImage(){
-      let w=this.width||this.diameter||opt.switchWidth||opt.switchDiameter;
-      let h=this.height||this.diameter||opt.switchHeight||opt.switchDiameter;
+      let w=this.dynamicwidth||this.width||this.diameter||opt.switchWidth||opt.switchDiameter;
+      let h=this.dynamicheight||this.height||this.diameter||opt.switchHeight||opt.switchDiameter;
+      if(this.src && w < 0) {
+        // The same kind of hack as knobs.
+        //
+        // FIXME: this will fail to update image if src is changed and it is sized based on the image content.
+        this.sizecalcimg = new Image();
+        this.sizecalcimg.onload = () => {
+          this.dynamicwidth = this.sizecalcimg.naturalWidth;
+          this.dynamicheight = this.sizecalcimg.naturalHeight / 2;
+          this._width = this.dynamicwidth;
+          this._height = this.dynamicheight;
+          this.setupImage();
+        };
+        this.sizecalcimg.src = this.src;
+        return;
+      }
       if(!this.src){
         this.coltab = this.colors.split(";");
         let mm=Math.min(w,h);
