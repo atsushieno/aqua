@@ -1,6 +1,7 @@
 <html>
 <head>
 <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script src="webaudio-controls.js"></script>
 <script type="text/javascript">//<!--
 		
 function onBodyLoad() {
@@ -105,7 +106,9 @@ function processAriaGuiBlob(bankXmlFile, doc, ariaGuiPathAbs, ariaGuiDocTextRaw)
 				</ul>
 			</div>
 		</div>
-		<iframe style="position:absolute; left:400px; top: 0px" width="800" height="400" name="instFrame"></iframe>
+		<iframe style="position:absolute; left:400px; top: 0px" width="800" height="340" name="instFrame"></iframe>
+		<webaudio-keyboard id="preview-keyboard" keys="75" width="760" height="60"
+			style="position:absolute; left:420px; top: 340px"  />
 	</div>
 </body>
 </html>
