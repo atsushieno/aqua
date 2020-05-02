@@ -39,6 +39,20 @@
 	</webaudio-knob>
   </xsl:template>
 
+  <xsl:template match="Slider">
+	<webaudio-slider id="knob-{@param}"
+		src="{@image_bg}" knobsrc="{@image_handle}" style="position:absolute; left:{@x}px; top:{@y}px" 
+		value="0" max="{@frames}" step="1">
+		<xsl:attribute name="direction">
+			<xsl:choose>
+				<xsl:when test="@orientation='vertical'">vert</xsl:when>
+				<xsl:otherwise>horz</xsl:otherwise>
+			</xsl:choose>
+		</xsl:attribute>
+	&#10;
+	</webaudio-slider>
+  </xsl:template>
+
   <xsl:template match="OnOffButton">
 	<webaudio-switch id="switch-{@param}"
 		src="{@image}" style="position:absolute; left:{@x}px; top:{@y}px">
