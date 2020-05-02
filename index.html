@@ -28,7 +28,7 @@ function onBodyLoad() {
 function processBankXml(bankXmlFile, resolve, reject) {
 	fetch(bankXmlFile).then(response => {		
 		if (!response.ok) {
-			throw new Error("Failed to retrieve bank xml");
+			throw new Error("Failed to retrieve " + bankXmlFile);
 		}
 		return response.blob();
 	}).then(blob => {
