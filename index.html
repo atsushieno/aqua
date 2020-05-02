@@ -95,9 +95,7 @@ function processAriaGuiBlob(bankXmlFile, doc, ariaGuiPathAbs, ariaGuiDocTextRaw)
 
 <body onload="onBodyLoad()">
 	<div id="app">
-	<table>
-		<tr>
-			<td>
+		<div style="width: 400px; height: 400px; overflow:scroll">
 			<div v-for="pL in programList">
 				<img width="360" height="120" v-bind:src="pL.thumbnail" />
 				<ul>
@@ -106,12 +104,8 @@ function processAriaGuiBlob(bankXmlFile, doc, ariaGuiPathAbs, ariaGuiDocTextRaw)
 					</li>
 				</ul>
 			</div>
-			</td>
-			<td>
-				<iframe width="800" height="400" name="instFrame"></iframe>
-			</td>
-		</tr>
-	</table>
-	</ul>
+		</div>
+		<iframe style="position:absolute; left:400px; top: 0px" width="800" height="400" name="instFrame"></iframe>
+	</div>
 </body>
 </html>
