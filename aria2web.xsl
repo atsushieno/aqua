@@ -55,7 +55,7 @@
 
   <xsl:template match="OnOffButton">
 	<webaudio-switch id="switch-{@param}"
-		src="{@image}" style="position:absolute; left:{@x}px; top:{@y}px" tooltip="%d" diameter="-1">
+		src="{@image}" style="position:absolute; left:{@x}px; top:{@y}px" diameter="-1">
 	&#10;
 	</webaudio-switch>
   </xsl:template>
