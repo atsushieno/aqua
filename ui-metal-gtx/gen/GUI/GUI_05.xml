@@ -1,0 +1,13 @@
+<GUI w="775" h="335">
+ 
+	<!-- StaticImage: Any png file, alpha blended. The image can contain transparency. Place first to allow other elements to show over it -->
+	<StaticImage x="0" y="0" w="775" h="330" image="Arpeggio/Arpeggio_Control.png" transparent="1" />
+
+	<Knob param="47" x="352" y="249" image="Arpeggio/Knob_PU.png" frames="101"   />
+	<Knob param="48" x="587" y="249" image="Arpeggio/Main_Knob.png" frames="101"   />
+
+	<Knob param="47" x="414" y="238" image="Arpeggio/Lamp_Blue.png" frames="101"   />
+	<Knob param="47" x="414" y="266" image="Arpeggio/Lamp_Purple.png" frames="101"   />
+	<Knob param="47" x="414" y="291" image="Arpeggio/Lamp_Red.png" frames="101"   />
+
+</GUI>

@@ -1,0 +1,47 @@
+<GUI w="775" h="335">
+ 
+	<!-- StaticImage: Any png file, alpha blended. The image can contain transparency. Place first to allow other elements to show over it -->
+	<StaticImage x="0" y="0" w="775" h="330" image="Main/Control.png" transparent="1" />
+	<StaticImage x="0" y="0" w="775" h="330" image="Main/Control_Shadow.png" transparent="2" />
+	<StaticImage x="0" y="0" w="775" h="330" image="Main/Control_Shadow.png" transparent="2" />
+	<StaticImage x="650" y="266" w="74" h="55" image="Main/Text.png" transparent="3" />
+
+	<!-- INSTRUMENT CONTROLS -->
+	
+	<Knob param="20" x="53" y="168" image="Main/Window1.png" frames="101"   />
+	<Knob param="21" x="114" y="168" image="Main/Window2.png" frames="61"   />
+	<Knob param="22" x="234" y="168" image="Main/Window3.png" frames="101"   />
+	<Knob param="23" x="293" y="168" image="Main/Window4.png" frames="101"   />
+	<Knob param="24" x="413" y="168" image="Main/Window5.png" frames="101"   />
+	<Knob param="25" x="478" y="168" image="Main/Window6.png" frames="101"   />
+	<Knob param="26" x="592" y="168" image="Main/Window7.png" frames="101"   />
+	<Knob param="27" x="657" y="168" image="Main/Window8.png" frames="101"   />
+
+	<Knob param="29" x="345" y="36" image="Main/Main_Knob.png" frames="101"   />
+	<Knob param="30" x="39" y="36" image="Main/Main_Knob.png" frames="101"   />
+	<Knob param="31" x="115" y="36" image="Main/Main_Knob.png" frames="101"   />
+	<Knob param="46" x="193" y="36" image="Main/Main_Knob.png" frames="101"   />
+	<Knob param="48" x="268" y="36" image="Main/Main_Knob.png" frames="101"   />
+
+	<Knob param="28" x="443" y="36" image="Main/Main_Knob.png" frames="101"   />
+	<Knob param="52" x="519" y="36" image="Main/Main_Knob.png" frames="101"   />
+	<Knob param="53" x="597" y="36" image="Main/Main_Knob.png" frames="101"   />
+	<Knob param="112" x="672" y="36" image="Main/Main_Knob.png" frames="101"   />
+
+	<Knob param="20" x="37" y="182" image="Main/Dummy.png" frames="1"   />
+	<Knob param="21" x="182" y="182" image="Main/Dummy.png" frames="1"   />
+	<Knob param="22" x="218" y="182" image="Main/Dummy.png" frames="1"   />
+	<Knob param="23" x="363" y="182" image="Main/Dummy.png" frames="1"   />
+	<Knob param="24" x="398" y="182" image="Main/Dummy.png" frames="1"   />
+	<Knob param="25" x="543" y="182" image="Main/Dummy.png" frames="1"   />
+	<Knob param="26" x="576" y="182" image="Main/Dummy.png" frames="1"   />
+	<Knob param="27" x="721" y="182" image="Main/Dummy.png" frames="1"   />
+
+	<OnOffButton param="23"  x="660" y="282" w="52" h="21" image="Main/Button.png" />
+
+	<OnOffButton param="32"  x="60" y="282" w="52" h="21" image="Main/Button.png" />
+
+
+
+	
+</GUI>
