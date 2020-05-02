@@ -1,5 +1,6 @@
 <xsl:transform version="1.0"
-     xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+	xmlns:svg="http://www.w3.org/2000/svg"
+    xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:output method="html" indent="yes" />
   <xsl:preserve-space elements="script webaudio-knob webaudio-switch" />
 
@@ -16,6 +17,14 @@
 		</div>
       </body>
     </html>
+  </xsl:template>
+
+  <xsl:template match="StaticText">
+    <!-- FIXME: there is `transparent` attribute too -->
+	<div style="position:absolute; left:{@x}px; top:{@y}px; width:{@w}px; height:{@h}px">
+	    <svg:svg viewBox="0px 0px {@w}px {@h}px"><svg:text x="0px" y="{@h}px" style="color:{@color_text}"> <xsl:value-of select="@text" /></svg:text></svg:svg>
+	</div>
+	<!-- span style="position:absolute; text-align:justify; left:{@x}px; top:{@y}px; width:{@w}px; height:{@h}px; color:{@color_text}" class="StaticText"><xsl:value-of select="@text" /></span -->
   </xsl:template>
 
   <xsl:template match="StaticImage">

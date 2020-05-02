@@ -9,16 +9,19 @@ There are handful of great instruments with ARIA UI such as  [Unreal Instruments
 - [UI Standard Guitar](https://unreal-instruments.wixsite.com/unreal-instruments/standard-guitar) 
 - [UI METAL GTX](https://unreal-instruments.wixsite.com/unreal-instruments/metal-gtx)
 - [UI 1912](https://unreal-instruments.wixsite.com/unreal-instruments/1912)
+- [karoryfer-bigcat.cello](https://github.com/sfzinstruments/karoryfer-bigcat.cello)
 
 
 ## License notice
 
 The scripting part is available under the MIT License.
 
-UI METAL GTX and UI Standard Guitar contents are freely available like public domain (even no credits required).
+UI METAL GTX, UI Standard Guitar, and UI 1912 are freely available like public domain (even no credits required).
 
 ```
 ＊ライセンスについて
 ・ライセンスフリーです
 ・クレジット表記は不要です 
 ```
+
+karoryfer-bigcat.cello is under CC-BY 4.0 License.

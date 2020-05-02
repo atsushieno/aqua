@@ -17,3 +17,9 @@ cp -R ui-1912/source/GUI/ ui-1912/gen/
 for i in ui-1912/source/GUI/*.xml ; do
   xsltproc aria2web.xsl "$i" > ui-1912/gen/GUI/`basename "$i" .xml`.html
 done
+
+mkdir -p ui-karoryfer-bigcat.cello/gen/GUI
+cp -R ui-karoryfer-bigcat.cello/source/GUI/ ui-karoryfer-bigcat.cello/gen/
+for i in ui-karoryfer-bigcat.cello/source/GUI/*.xml ; do
+  xsltproc aria2web.xsl "$i" > ui-karoryfer-bigcat.cello/gen/GUI/`basename "$i" .xml`.html
+done
