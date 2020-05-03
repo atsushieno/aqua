@@ -4,34 +4,15 @@
   <head>
     <script src="../../../webcomponents-lite.js"> </script>
     <script src="../../../webaudio-controls.js"> </script>
+    <script src="../../../aria2web.js"> </script>
     <script type="text/javascript">
       <!--
 		  document.Aria2WebInstrument = "(specify-identifier)";
-
-		  Aria2Web = {};
-		  Aria2Web.notifyInput = function(instrumentID, controlId, value) {
-			console.log(instrumentID + " : change event CC: " + controlId + " = " + value);
-		  };
-
-		  function setupWebAudioControlEvent(e) {
-			e.addEventListener("change", () => {
-			Aria2Web.notifyInput(
-				document.Aria2WebInstrument,
-				e.getAttribute("a2w-control"),
-				e.value);
-			});
-		  }
-
-		  function setupWebAudioControlEvents() {
-		  	[].slice.call(document.getElementsByTagName("webaudio-knob")).map(setupWebAudioControlEvent);
-		  	[].slice.call(document.getElementsByTagName("webaudio-switch")).map(setupWebAudioControlEvent);
-		  	[].slice.call(document.getElementsByTagName("webaudio-slider")).map(setupWebAudioControlEvent);
-		  }
 		  -->
     </script>
   </head>
   <body onload="setupWebAudioControlEvents()">
-    <div width="787px" height="335px">
+    <div style="width:787px; height:335px">
 
 	<img src="Main_Back.png" style="position:absolute; left:0px; top:0px; width:775px; height:330px" class="StaticImage"/>
 

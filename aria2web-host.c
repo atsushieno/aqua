@@ -12,7 +12,7 @@
 #include <httpserver.h>
 #include <uriparser2.h>
 
-void log_debug(const char* s) { /*puts(s);*/ }
+void log_debug(const char* s) { puts(s); }
 
 void uri_unescape_in_place(char* p) {
 	int dst = 0;
@@ -31,6 +31,29 @@ void uri_unescape_in_place(char* p) {
 	p[dst] = NULL;
 }
 
+void uri_strip_query_string(char *s) {
+	for (int i = 0; s[i]; i++)
+		if (s[i] == '?') {
+			s[i] = NULL;
+			return;
+		}
+}
+
+const char* mime_types[] = {"text/html", "application/xml", "image/png" };
+
+const char* get_mime_type_from_filename(char* filename) {
+	std::string s{filename};
+	if (s.size() > 4) {
+		printf("filename: %s, size %d, compareXML: %d\n", filename, s.size(), s.compare(s.size() - 4, 4, ".xml"));
+		printf("filename: %s, size %d, comparePNG: %d\n", filename, s.size(), s.compare(s.size() - 4, 4, ".png"));
+	} else printf("FILENAME: %s\n", filename);
+	if (s.size() > 4 && s.compare(s.size() - 4, 4, ".xml") == 0)
+		return mime_types[1];
+	if (s.size() > 4 && s.compare(s.size() - 4, 4, ".png") == 0)
+		return mime_types[2];
+	return mime_types[0];
+}
+
 void handle_request(struct http_request_s* request) {
 	struct http_response_s* response = http_response_init();
 
@@ -40,8 +63,11 @@ void handle_request(struct http_request_s* request) {
 	targetPath[0] = '.';
 	memcpy(targetPath + 1, target.buf, target.len);
 	targetPath[target.len + 1] = NULL;
-	uri_unescape_in_place(targetPath);
 	log_debug(targetPath);
+	uri_unescape_in_place(targetPath);
+	uri_strip_query_string(targetPath);
+	
+	const char* mimeType = get_mime_type_from_filename(targetPath);
 
 	int fd = open(targetPath, O_RDONLY);
 	free(targetPath);
@@ -56,7 +82,7 @@ void handle_request(struct http_request_s* request) {
 		assert(content);
 		
 		http_response_status(response, 200);
-		http_response_header(response, "Content-Type", "text/html");
+		http_response_header(response, "Content-Type", mimeType);
 		http_response_body(response, (const char*) content, st.st_size);
 		http_respond(request, response);
 		munmap(content, st.st_size);
@@ -69,6 +95,20 @@ void* runHttpServer(void*) {
 	return NULL;
 }
 
+void webview_callback_control_change(const char *seq, const char *req, void *arg) {
+	log_debug("control change callback is invoked");
+	log_debug(seq);
+	log_debug(req);
+	log_debug(arg != NULL ? "not null" : "null");
+}
+
+void webview_callback_note(const char *seq, const char *req, void *arg) {
+	log_debug("note callback is invoked");
+	log_debug(seq);
+	log_debug(req);
+	log_debug(arg != NULL ? "not null" : "null");
+}
+
 pthread_t http_server_thread;
 
 #ifdef WIN32
@@ -79,11 +119,13 @@ int main() {
 #endif
 	pthread_create(&http_server_thread, NULL, runHttpServer, NULL);
 
-	webview::webview w(true, nullptr);
-	w.set_title("Minimal example");
-	w.set_size(1200, 450, WEBVIEW_HINT_NONE);
-	w.navigate("http://localhost:37564/index.html");
-	w.run();
+	auto w = webview_create(true, nullptr);
+	webview_set_title(w, "Aria2Web embedded example");
+	webview_set_size(w, 1200, 450, WEBVIEW_HINT_NONE);
+	webview_navigate(w, "http://localhost:37564/index.html");
+	webview_bind(w, "ControlChangeCallback", webview_callback_control_change, NULL);
+	webview_bind(w, "NoteCallback", webview_callback_note, NULL);
+	webview_run(w);
 	
 	return 0;
 }

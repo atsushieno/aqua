@@ -10,33 +10,13 @@
 	  <head>
 		  <script src="../../../webcomponents-lite.js"><xsl:text> </xsl:text></script>
 		  <script src="../../../webaudio-controls.js"><xsl:text> </xsl:text></script>
+		  <script src="../../../aria2web.js"><xsl:text> </xsl:text></script>
 		  <script type="text/javascript"><xsl:comment>
 		  document.Aria2WebInstrument = "<xsl:value-of select="$InstrumentProgramId" />";
-
-		  // TODO: We are still unsure if this can be hooked at embedded environment. If not, try to move it to index.html.
-		  Aria2Web = {};
-		  Aria2Web.notifyInput = function(instrumentID, controlId, value) {
-			console.log(instrumentID + " : change event CC: " + controlId + " = " + value);
-		  };
-
-		  function setupWebAudioControlEvent(e) {
-			e.addEventListener("change", () => {
-			Aria2Web.notifyInput(
-				document.Aria2WebInstrument,
-				e.getAttribute("a2w-control"),
-				e.value);
-			});
-		  }
-
-		  function setupWebAudioControlEvents() {
-		  	[].slice.call(document.getElementsByTagName("webaudio-knob")).map(setupWebAudioControlEvent);
-		  	[].slice.call(document.getElementsByTagName("webaudio-switch")).map(setupWebAudioControlEvent);
-		  	[].slice.call(document.getElementsByTagName("webaudio-slider")).map(setupWebAudioControlEvent);
-		  }
 		  </xsl:comment></script>
 	  </head>
       <body onload="setupWebAudioControlEvents()">
-		<div width="{@w}px" height="{@h}px">
+		<div style="width:{@w}px; height:{@h}px">
 			<xsl:apply-templates />
 		</div>
       </body>
