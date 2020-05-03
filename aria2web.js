@@ -17,7 +17,7 @@ function setupWebAudioControlChangeEvent(e) {
 	e.addEventListener("change", () => {
 		Aria2Web.notifyControlChange(
 			document.Aria2WebInstrument,
-			e.getAttribute("a2w-control"),
+			Number(e.getAttribute("a2w-control")),
 			e.value);
 		});
 }
