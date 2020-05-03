@@ -1,15 +1,14 @@
 <xsl:transform version="1.0"
 	xmlns:svg="http://www.w3.org/2000/svg"
     xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-  <xsl:output method="html" indent="yes" />
-  <xsl:preserve-space elements="script webaudio-knob webaudio-switch" />
+  <xsl:output method="xml" indent="yes" />
 
   <xsl:template match="GUI">
     <html>
 		<meta charset="utf-8" />
 	  <head>
-		  <script src="../../../webcomponents-lite.js">&#10;</script>
-		  <script src="../../../webaudio-controls.js">&#10;</script>
+		  <script src="../../../webcomponents-lite.js"><xsl:text> </xsl:text></script>
+		  <script src="../../../webaudio-controls.js"><xsl:text> </xsl:text></script>
 	  </head>
       <body>
 		<div width="{@w}px" height="{@h}px">
@@ -35,7 +34,7 @@
 	<webaudio-knob id="knob-{@param}"
 		src="{@image}" style="position:absolute; left:{@x}px; top:{@y}px" 
 		value="0" max="{@frames - 1}" step="1" sprites="{@frames - 1}" tooltip="%d" diameter="-1">
-	&#10;
+	<xsl:text> </xsl:text>
 	</webaudio-knob>
   </xsl:template>
 
@@ -49,14 +48,14 @@
 				<xsl:otherwise>horz</xsl:otherwise>
 			</xsl:choose>
 		</xsl:attribute>
-	&#10;
+	<xsl:text> </xsl:text>
 	</webaudio-slider>
   </xsl:template>
 
   <xsl:template match="OnOffButton">
 	<webaudio-switch id="switch-{@param}"
 		src="{@image}" style="position:absolute; left:{@x}px; top:{@y}px" diameter="-1">
-	&#10;
+	<xsl:text> </xsl:text>
 	</webaudio-switch>
   </xsl:template>
 
