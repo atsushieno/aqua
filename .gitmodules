@@ -4,6 +4,3 @@
 [submodule "external/httpserver.h"]
 	path = external/httpserver.h
 	url = https://github.com/jeremycw/httpserver.h.git
-[submodule "external/uriparser2"]
-	path = external/uriparser2
-	url = https://github.com/bnoordhuis/uriparser2.git

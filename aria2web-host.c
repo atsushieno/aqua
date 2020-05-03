@@ -10,7 +10,6 @@
 #include <webview.h>
 #define HTTPSERVER_IMPL
 #include <httpserver.h>
-#include <uriparser2.h>
 
 void log_debug(const char* s) { puts(s); }
 
