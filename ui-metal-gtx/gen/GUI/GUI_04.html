@@ -4,8 +4,33 @@
   <head>
     <script src="../../../webcomponents-lite.js"> </script>
     <script src="../../../webaudio-controls.js"> </script>
+    <script type="text/javascript">
+      <!--
+		  document.Aria2WebInstrument = "(specify-identifier)";
+
+		  Aria2Web = {};
+		  Aria2Web.notifyInput = function(instrumentID, controlId, value) {
+			console.log(instrumentID + " : change event CC: " + controlId + " = " + value);
+		  };
+
+		  function setupWebAudioControlEvent(e) {
+			e.addEventListener("change", () => {
+			Aria2Web.notifyInput(
+				document.Aria2WebInstrument,
+				e.getAttribute("a2w-control"),
+				e.value);
+			});
+		  }
+
+		  function setupWebAudioControlEvents() {
+		  	[].slice.call(document.getElementsByTagName("webaudio-knob")).map(setupWebAudioControlEvent);
+		  	[].slice.call(document.getElementsByTagName("webaudio-switch")).map(setupWebAudioControlEvent);
+		  	[].slice.call(document.getElementsByTagName("webaudio-slider")).map(setupWebAudioControlEvent);
+		  }
+		  -->
+    </script>
   </head>
-  <body>
+  <body onload="setupWebAudioControlEvents()">
     <div width="775px" height="335px">
  
 	
@@ -14,17 +39,17 @@
 
 	
 
-	<webaudio-knob id="knob-21" src="GCC/GCC_Window1.png" style="position:absolute; left:156px; top:101px" value="0" max="99" step="1" sprites="99" tooltip="%d" diameter="-1"> </webaudio-knob>	
-	<webaudio-knob id="knob-20" src="GCC/GCC_Window2.png" style="position:absolute; left:343px; top:101px" value="0" max="99" step="1" sprites="99" tooltip="%d" diameter="-1"> </webaudio-knob>
-	<webaudio-knob id="knob-22" src="GCC/GCC_Window3.png" style="position:absolute; left:531px; top:101px" value="0" max="99" step="1" sprites="99" tooltip="%d" diameter="-1"> </webaudio-knob>	
+	<webaudio-knob id="knob-21" a2w-control="21" src="GCC/GCC_Window1.png" style="position:absolute; left:156px; top:101px" value="0" max="99" step="1" sprites="99" tooltip="%d" diameter="-1"> </webaudio-knob>	
+	<webaudio-knob id="knob-20" a2w-control="20" src="GCC/GCC_Window2.png" style="position:absolute; left:343px; top:101px" value="0" max="99" step="1" sprites="99" tooltip="%d" diameter="-1"> </webaudio-knob>
+	<webaudio-knob id="knob-22" a2w-control="22" src="GCC/GCC_Window3.png" style="position:absolute; left:531px; top:101px" value="0" max="99" step="1" sprites="99" tooltip="%d" diameter="-1"> </webaudio-knob>	
 
-	<webaudio-knob id="knob-25" src="GCC/GCC_Window5.png" style="position:absolute; left:343px; top:225px" value="0" max="99" step="1" sprites="99" tooltip="%d" diameter="-1"> </webaudio-knob>
+	<webaudio-knob id="knob-25" a2w-control="25" src="GCC/GCC_Window5.png" style="position:absolute; left:343px; top:225px" value="0" max="99" step="1" sprites="99" tooltip="%d" diameter="-1"> </webaudio-knob>
 
 
-	<webaudio-knob id="knob-21" src="GCC/GCC_Dummy.png" style="position:absolute; left:228px; top:104px" value="0" max="99" step="1" sprites="99" tooltip="%d" diameter="-1"> </webaudio-knob>
-	<webaudio-knob id="knob-20" src="GCC/GCC_Dummy.png" style="position:absolute; left:415px; top:104px" value="0" max="99" step="1" sprites="99" tooltip="%d" diameter="-1"> </webaudio-knob>
-	<webaudio-knob id="knob-22" src="GCC/GCC_Dummy.png" style="position:absolute; left:602px; top:104px" value="0" max="99" step="1" sprites="99" tooltip="%d" diameter="-1"> </webaudio-knob>
-	<webaudio-knob id="knob-25" src="GCC/GCC_Dummy.png" style="position:absolute; left:415px; top:229px" value="0" max="99" step="1" sprites="99" tooltip="%d" diameter="-1"> </webaudio-knob>
+	<webaudio-knob id="knob-21" a2w-control="21" src="GCC/GCC_Dummy.png" style="position:absolute; left:228px; top:104px" value="0" max="99" step="1" sprites="99" tooltip="%d" diameter="-1"> </webaudio-knob>
+	<webaudio-knob id="knob-20" a2w-control="20" src="GCC/GCC_Dummy.png" style="position:absolute; left:415px; top:104px" value="0" max="99" step="1" sprites="99" tooltip="%d" diameter="-1"> </webaudio-knob>
+	<webaudio-knob id="knob-22" a2w-control="22" src="GCC/GCC_Dummy.png" style="position:absolute; left:602px; top:104px" value="0" max="99" step="1" sprites="99" tooltip="%d" diameter="-1"> </webaudio-knob>
+	<webaudio-knob id="knob-25" a2w-control="25" src="GCC/GCC_Dummy.png" style="position:absolute; left:415px; top:229px" value="0" max="99" step="1" sprites="99" tooltip="%d" diameter="-1"> </webaudio-knob>
 
 </div>
   </body>

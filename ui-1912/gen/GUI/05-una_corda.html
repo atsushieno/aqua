@@ -4,8 +4,33 @@
   <head>
     <script src="../../../webcomponents-lite.js"> </script>
     <script src="../../../webaudio-controls.js"> </script>
+    <script type="text/javascript">
+      <!--
+		  document.Aria2WebInstrument = "(specify-identifier)";
+
+		  Aria2Web = {};
+		  Aria2Web.notifyInput = function(instrumentID, controlId, value) {
+			console.log(instrumentID + " : change event CC: " + controlId + " = " + value);
+		  };
+
+		  function setupWebAudioControlEvent(e) {
+			e.addEventListener("change", () => {
+			Aria2Web.notifyInput(
+				document.Aria2WebInstrument,
+				e.getAttribute("a2w-control"),
+				e.value);
+			});
+		  }
+
+		  function setupWebAudioControlEvents() {
+		  	[].slice.call(document.getElementsByTagName("webaudio-knob")).map(setupWebAudioControlEvent);
+		  	[].slice.call(document.getElementsByTagName("webaudio-switch")).map(setupWebAudioControlEvent);
+		  	[].slice.call(document.getElementsByTagName("webaudio-slider")).map(setupWebAudioControlEvent);
+		  }
+		  -->
+    </script>
   </head>
-  <body>
+  <body onload="setupWebAudioControlEvents()">
     <div width="775px" height="335px">
  
 	
@@ -14,10 +39,10 @@
 
 	
 	
-	<webaudio-knob id="knob-20" src="Mid_Knob0.png" style="position:absolute; left:309px; top:78px" value="0" max="100" step="1" sprites="100" tooltip="%d" diameter="-1"> </webaudio-knob>
-	<webaudio-knob id="knob-21" src="Mid_Knob0.png" style="position:absolute; left:393px; top:78px" value="0" max="100" step="1" sprites="100" tooltip="%d" diameter="-1"> </webaudio-knob>
-	<webaudio-knob id="knob-24" src="Big_Knob_Blue.png" style="position:absolute; left:100px; top:34px" value="0" max="50" step="1" sprites="50" tooltip="%d" diameter="-1"> </webaudio-knob>
-	<webaudio-knob id="knob-110" src="Big_Knob_Blue.png" style="position:absolute; left:543px; top:34px" value="0" max="50" step="1" sprites="50" tooltip="%d" diameter="-1"> </webaudio-knob>
+	<webaudio-knob id="knob-20" a2w-control="20" src="Mid_Knob0.png" style="position:absolute; left:309px; top:78px" value="0" max="100" step="1" sprites="100" tooltip="%d" diameter="-1"> </webaudio-knob>
+	<webaudio-knob id="knob-21" a2w-control="21" src="Mid_Knob0.png" style="position:absolute; left:393px; top:78px" value="0" max="100" step="1" sprites="100" tooltip="%d" diameter="-1"> </webaudio-knob>
+	<webaudio-knob id="knob-24" a2w-control="24" src="Big_Knob_Blue.png" style="position:absolute; left:100px; top:34px" value="0" max="50" step="1" sprites="50" tooltip="%d" diameter="-1"> </webaudio-knob>
+	<webaudio-knob id="knob-110" a2w-control="110" src="Big_Knob_Blue.png" style="position:absolute; left:543px; top:34px" value="0" max="50" step="1" sprites="50" tooltip="%d" diameter="-1"> </webaudio-knob>
 
 </div>
   </body>

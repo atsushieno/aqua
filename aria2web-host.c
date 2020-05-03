@@ -12,6 +12,8 @@
 #include <httpserver.h>
 #include <uriparser2.h>
 
+void log_debug(const char* s) { /*puts(s);*/ }
+
 void uri_unescape_in_place(char* p) {
 	int dst = 0;
 	for (int i = 0; p[i]; i++) {
@@ -33,14 +35,13 @@ void handle_request(struct http_request_s* request) {
 	struct http_response_s* response = http_response_init();
 
 	struct http_string_s target = http_request_target(request);
-	char* targetPath = calloc(target.len + 2, 1);
+	char* targetPath = (char*) calloc(target.len + 2, 1);
 	// FIXME: make sure that the requested resource is under pwd.
 	targetPath[0] = '.';
 	memcpy(targetPath + 1, target.buf, target.len);
 	targetPath[target.len + 1] = NULL;
-	puts(targetPath);
 	uri_unescape_in_place(targetPath);
-	puts(targetPath);
+	log_debug(targetPath);
 
 	int fd = open(targetPath, O_RDONLY);
 	free(targetPath);
@@ -62,9 +63,10 @@ void handle_request(struct http_request_s* request) {
 	}
 }
 
-void runHttpServer() {
+void* runHttpServer(void*) {
 	struct http_server_s* server = http_server_init(37564, handle_request);
 	http_server_listen(server);
+	return NULL;
 }
 
 pthread_t http_server_thread;

@@ -4,8 +4,33 @@
   <head>
     <script src="../../../webcomponents-lite.js"> </script>
     <script src="../../../webaudio-controls.js"> </script>
+    <script type="text/javascript">
+      <!--
+		  document.Aria2WebInstrument = "(specify-identifier)";
+
+		  Aria2Web = {};
+		  Aria2Web.notifyInput = function(instrumentID, controlId, value) {
+			console.log(instrumentID + " : change event CC: " + controlId + " = " + value);
+		  };
+
+		  function setupWebAudioControlEvent(e) {
+			e.addEventListener("change", () => {
+			Aria2Web.notifyInput(
+				document.Aria2WebInstrument,
+				e.getAttribute("a2w-control"),
+				e.value);
+			});
+		  }
+
+		  function setupWebAudioControlEvents() {
+		  	[].slice.call(document.getElementsByTagName("webaudio-knob")).map(setupWebAudioControlEvent);
+		  	[].slice.call(document.getElementsByTagName("webaudio-switch")).map(setupWebAudioControlEvent);
+		  	[].slice.call(document.getElementsByTagName("webaudio-slider")).map(setupWebAudioControlEvent);
+		  }
+		  -->
+    </script>
   </head>
-  <body>
+  <body onload="setupWebAudioControlEvents()">
     <div width="775px" height="335px">
  
 	
@@ -18,23 +43,23 @@
 
 	<div style="position:absolute; left:9px; top:177px; width:100px; height:18px"><svg:svg viewBox="0px 0px 100px 18px"><svg:text x="0px" y="18px" style="color:#FFFFFFFF">Attack</svg:text></svg:svg></div>
 	
-	<webaudio-knob id="knob-100" src="Smallish_b.png" style="position:absolute; left:42px; top:200px" value="0" max="127" step="1" sprites="127" tooltip="%d" diameter="-1"> </webaudio-knob>
+	<webaudio-knob id="knob-100" a2w-control="100" src="Smallish_b.png" style="position:absolute; left:42px; top:200px" value="0" max="127" step="1" sprites="127" tooltip="%d" diameter="-1"> </webaudio-knob>
 
 	<div style="position:absolute; left:59px; top:177px; width:100px; height:18px"><svg:svg viewBox="0px 0px 100px 18px"><svg:text x="0px" y="18px" style="color:#FFFFFFFF">Hold</svg:text></svg:svg></div>
 
-	<webaudio-knob id="knob-101" src="Smallish_b.png" style="position:absolute; left:92px; top:200px" value="0" max="127" step="1" sprites="127" tooltip="%d" diameter="-1"> </webaudio-knob>
+	<webaudio-knob id="knob-101" a2w-control="101" src="Smallish_b.png" style="position:absolute; left:92px; top:200px" value="0" max="127" step="1" sprites="127" tooltip="%d" diameter="-1"> </webaudio-knob>
 
 	<div style="position:absolute; left:109px; top:177px; width:100px; height:18px"><svg:svg viewBox="0px 0px 100px 18px"><svg:text x="0px" y="18px" style="color:#FFFFFFFF">Decay</svg:text></svg:svg></div>
 
-	<webaudio-knob id="knob-102" src="Smallish_b.png" style="position:absolute; left:142px; top:200px" value="0" max="127" step="1" sprites="127" tooltip="%d" diameter="-1"> </webaudio-knob>
+	<webaudio-knob id="knob-102" a2w-control="102" src="Smallish_b.png" style="position:absolute; left:142px; top:200px" value="0" max="127" step="1" sprites="127" tooltip="%d" diameter="-1"> </webaudio-knob>
 
 	<div style="position:absolute; left:159px; top:177px; width:100px; height:18px"><svg:svg viewBox="0px 0px 100px 18px"><svg:text x="0px" y="18px" style="color:#FFFFFFFF">Sustain</svg:text></svg:svg></div>
 
-	<webaudio-knob id="knob-103" src="Smallish_b.png" style="position:absolute; left:192px; top:200px" value="0" max="127" step="1" sprites="127" tooltip="%d" diameter="-1"> </webaudio-knob>
+	<webaudio-knob id="knob-103" a2w-control="103" src="Smallish_b.png" style="position:absolute; left:192px; top:200px" value="0" max="127" step="1" sprites="127" tooltip="%d" diameter="-1"> </webaudio-knob>
 
 	<div style="position:absolute; left:209px; top:177px; width:100px; height:18px"><svg:svg viewBox="0px 0px 100px 18px"><svg:text x="0px" y="18px" style="color:#FFFFFFFF">Release</svg:text></svg:svg></div>
 
-	<webaudio-knob id="knob-104" src="Smallish_b.png" style="position:absolute; left:242px; top:200px" value="0" max="127" step="1" sprites="127" tooltip="%d" diameter="-1"> </webaudio-knob>
+	<webaudio-knob id="knob-104" a2w-control="104" src="Smallish_b.png" style="position:absolute; left:242px; top:200px" value="0" max="127" step="1" sprites="127" tooltip="%d" diameter="-1"> </webaudio-knob>
 
         
 
@@ -45,19 +70,19 @@
 
 	<div style="position:absolute; left:459px; top:177px; width:100px; height:18px"><svg:svg viewBox="0px 0px 100px 18px"><svg:text x="0px" y="18px" style="color:#FFFFFFFF">Width</svg:text></svg:svg></div>
 
-	<webaudio-knob id="knob-122" src="Smallish_b.png" style="position:absolute; left:492px; top:200px" value="0" max="127" step="1" sprites="127" tooltip="%d" diameter="-1"> </webaudio-knob>
+	<webaudio-knob id="knob-122" a2w-control="122" src="Smallish_b.png" style="position:absolute; left:492px; top:200px" value="0" max="127" step="1" sprites="127" tooltip="%d" diameter="-1"> </webaudio-knob>
 
 	<div style="position:absolute; left:509px; top:177px; width:100px; height:18px"><svg:svg viewBox="0px 0px 100px 18px"><svg:text x="0px" y="18px" style="color:#FFFFFFFF">Detune</svg:text></svg:svg></div>
 
-	<webaudio-knob id="knob-123" src="Smallish_b.png" style="position:absolute; left:542px; top:200px" value="0" max="127" step="1" sprites="127" tooltip="%d" diameter="-1"> </webaudio-knob>
+	<webaudio-knob id="knob-123" a2w-control="123" src="Smallish_b.png" style="position:absolute; left:542px; top:200px" value="0" max="127" step="1" sprites="127" tooltip="%d" diameter="-1"> </webaudio-knob>
 
 	<div style="position:absolute; left:559px; top:177px; width:100px; height:18px"><svg:svg viewBox="0px 0px 100px 18px"><svg:text x="0px" y="18px" style="color:#FFFFFFFF">Glide</svg:text></svg:svg></div>
 
-	<webaudio-knob id="knob-109" src="Smallish_b.png" style="position:absolute; left:592px; top:200px" value="0" max="127" step="1" sprites="127" tooltip="%d" diameter="-1"> </webaudio-knob>
+	<webaudio-knob id="knob-109" a2w-control="109" src="Smallish_b.png" style="position:absolute; left:592px; top:200px" value="0" max="127" step="1" sprites="127" tooltip="%d" diameter="-1"> </webaudio-knob>
 
 	<div style="position:absolute; left:609px; top:177px; width:100px; height:18px"><svg:svg viewBox="0px 0px 100px 18px"><svg:text x="0px" y="18px" style="color:#FFFFFFFF">Marcato</svg:text></svg:svg></div>
 
-	<webaudio-knob id="knob-110" src="Smallish_b.png" style="position:absolute; left:642px; top:200px" value="0" max="127" step="1" sprites="127" tooltip="%d" diameter="-1"> </webaudio-knob>
+	<webaudio-knob id="knob-110" a2w-control="110" src="Smallish_b.png" style="position:absolute; left:642px; top:200px" value="0" max="127" step="1" sprites="127" tooltip="%d" diameter="-1"> </webaudio-knob>
 
 
 	
@@ -66,27 +91,27 @@
 
 	<div style="position:absolute; left:9px; top:257px; width:100px; height:18px"><svg:svg viewBox="0px 0px 100px 18px"><svg:text x="0px" y="18px" style="color:#FFFFFFFF">Pitch</svg:text></svg:svg></div>
 	
-	<webaudio-knob id="knob-111" src="Smallish_b.png" style="position:absolute; left:42px; top:280px" value="0" max="127" step="1" sprites="127" tooltip="%d" diameter="-1"> </webaudio-knob>
+	<webaudio-knob id="knob-111" a2w-control="111" src="Smallish_b.png" style="position:absolute; left:42px; top:280px" value="0" max="127" step="1" sprites="127" tooltip="%d" diameter="-1"> </webaudio-knob>
 
 	<div style="position:absolute; left:59px; top:257px; width:100px; height:18px"><svg:svg viewBox="0px 0px 100px 18px"><svg:text x="0px" y="18px" style="color:#FFFFFFFF">Volume</svg:text></svg:svg></div>
 
-	<webaudio-knob id="knob-113" src="Smallish_b.png" style="position:absolute; left:92px; top:280px" value="0" max="127" step="1" sprites="127" tooltip="%d" diameter="-1"> </webaudio-knob>
+	<webaudio-knob id="knob-113" a2w-control="113" src="Smallish_b.png" style="position:absolute; left:92px; top:280px" value="0" max="127" step="1" sprites="127" tooltip="%d" diameter="-1"> </webaudio-knob>
 
 	<div style="position:absolute; left:109px; top:257px; width:100px; height:18px"><svg:svg viewBox="0px 0px 100px 18px"><svg:text x="0px" y="18px" style="color:#FFFFFFFF">EQ</svg:text></svg:svg></div>
 
-	<webaudio-knob id="knob-114" src="Smallish_b.png" style="position:absolute; left:142px; top:280px" value="0" max="127" step="1" sprites="127" tooltip="%d" diameter="-1"> </webaudio-knob>
+	<webaudio-knob id="knob-114" a2w-control="114" src="Smallish_b.png" style="position:absolute; left:142px; top:280px" value="0" max="127" step="1" sprites="127" tooltip="%d" diameter="-1"> </webaudio-knob>
 
 	<div style="position:absolute; left:159px; top:257px; width:100px; height:18px"><svg:svg viewBox="0px 0px 100px 18px"><svg:text x="0px" y="18px" style="color:#FFFFFFFF">Rate</svg:text></svg:svg></div>
 
-	<webaudio-knob id="knob-112" src="Smallish_b.png" style="position:absolute; left:192px; top:280px" value="0" max="127" step="1" sprites="127" tooltip="%d" diameter="-1"> </webaudio-knob>
+	<webaudio-knob id="knob-112" a2w-control="112" src="Smallish_b.png" style="position:absolute; left:192px; top:280px" value="0" max="127" step="1" sprites="127" tooltip="%d" diameter="-1"> </webaudio-knob>
 
 	<div style="position:absolute; left:209px; top:257px; width:100px; height:18px"><svg:svg viewBox="0px 0px 100px 18px"><svg:text x="0px" y="18px" style="color:#FFFFFFFF">Delay</svg:text></svg:svg></div>
 
-	<webaudio-knob id="knob-115" src="Smallish_b.png" style="position:absolute; left:242px; top:280px" value="0" max="127" step="1" sprites="127" tooltip="%d" diameter="-1"> </webaudio-knob>
+	<webaudio-knob id="knob-115" a2w-control="115" src="Smallish_b.png" style="position:absolute; left:242px; top:280px" value="0" max="127" step="1" sprites="127" tooltip="%d" diameter="-1"> </webaudio-knob>
 
 	<div style="position:absolute; left:259px; top:257px; width:100px; height:18px"><svg:svg viewBox="0px 0px 100px 18px"><svg:text x="0px" y="18px" style="color:#FFFFFFFF">Fade</svg:text></svg:svg></div>
 
-	<webaudio-knob id="knob-116" src="Smallish_b.png" style="position:absolute; left:292px; top:280px" value="0" max="127" step="1" sprites="127" tooltip="%d" diameter="-1"> </webaudio-knob>
+	<webaudio-knob id="knob-116" a2w-control="116" src="Smallish_b.png" style="position:absolute; left:292px; top:280px" value="0" max="127" step="1" sprites="127" tooltip="%d" diameter="-1"> </webaudio-knob>
 
 	
 
@@ -94,15 +119,15 @@
 
 	<div style="position:absolute; left:359px; top:257px; width:100px; height:18px"><svg:svg viewBox="0px 0px 100px 18px"><svg:text x="0px" y="18px" style="color:#FFFFFFFF">Change Rate</svg:text></svg:svg></div>
 
-	<webaudio-knob id="knob-117" src="Smallish_b.png" style="position:absolute; left:392px; top:280px" value="0" max="127" step="1" sprites="127" tooltip="%d" diameter="-1"> </webaudio-knob>
+	<webaudio-knob id="knob-117" a2w-control="117" src="Smallish_b.png" style="position:absolute; left:392px; top:280px" value="0" max="127" step="1" sprites="127" tooltip="%d" diameter="-1"> </webaudio-knob>
 
 	<div style="position:absolute; left:409px; top:257px; width:100px; height:18px"><svg:svg viewBox="0px 0px 100px 18px"><svg:text x="0px" y="18px" style="color:#FFFFFFFF">Pitch</svg:text></svg:svg></div>
 
-	<webaudio-knob id="knob-118" src="Smallish_b.png" style="position:absolute; left:442px; top:280px" value="0" max="127" step="1" sprites="127" tooltip="%d" diameter="-1"> </webaudio-knob>
+	<webaudio-knob id="knob-118" a2w-control="118" src="Smallish_b.png" style="position:absolute; left:442px; top:280px" value="0" max="127" step="1" sprites="127" tooltip="%d" diameter="-1"> </webaudio-knob>
 
 	<div style="position:absolute; left:459px; top:257px; width:100px; height:18px"><svg:svg viewBox="0px 0px 100px 18px"><svg:text x="0px" y="18px" style="color:#FFFFFFFF">Vibrato</svg:text></svg:svg></div>
 
-	<webaudio-knob id="knob-119" src="Smallish_b.png" style="position:absolute; left:492px; top:280px" value="0" max="127" step="1" sprites="127" tooltip="%d" diameter="-1"> </webaudio-knob>
+	<webaudio-knob id="knob-119" a2w-control="119" src="Smallish_b.png" style="position:absolute; left:492px; top:280px" value="0" max="127" step="1" sprites="127" tooltip="%d" diameter="-1"> </webaudio-knob>
 
 
 </div>

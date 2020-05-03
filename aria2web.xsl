@@ -2,6 +2,7 @@
 	xmlns:svg="http://www.w3.org/2000/svg"
     xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
   <xsl:output method="xml" indent="yes" />
+  <xsl:variable name="InstrumentProgramId" select="'(specify-identifier)'" />
 
   <xsl:template match="GUI">
     <html>
@@ -9,8 +10,32 @@
 	  <head>
 		  <script src="../../../webcomponents-lite.js"><xsl:text> </xsl:text></script>
 		  <script src="../../../webaudio-controls.js"><xsl:text> </xsl:text></script>
+		  <script type="text/javascript"><xsl:comment>
+		  document.Aria2WebInstrument = "<xsl:value-of select="$InstrumentProgramId" />";
+
+		  // TODO: We are still unsure if this can be hooked at embedded environment. If not, try to move it to index.html.
+		  Aria2Web = {};
+		  Aria2Web.notifyInput = function(instrumentID, controlId, value) {
+			console.log(instrumentID + " : change event CC: " + controlId + " = " + value);
+		  };
+
+		  function setupWebAudioControlEvent(e) {
+			e.addEventListener("change", () => {
+			Aria2Web.notifyInput(
+				document.Aria2WebInstrument,
+				e.getAttribute("a2w-control"),
+				e.value);
+			});
+		  }
+
+		  function setupWebAudioControlEvents() {
+		  	[].slice.call(document.getElementsByTagName("webaudio-knob")).map(setupWebAudioControlEvent);
+		  	[].slice.call(document.getElementsByTagName("webaudio-switch")).map(setupWebAudioControlEvent);
+		  	[].slice.call(document.getElementsByTagName("webaudio-slider")).map(setupWebAudioControlEvent);
+		  }
+		  </xsl:comment></script>
 	  </head>
-      <body>
+      <body onload="setupWebAudioControlEvents()">
 		<div width="{@w}px" height="{@h}px">
 			<xsl:apply-templates />
 		</div>
@@ -31,7 +56,7 @@
   </xsl:template>
 
   <xsl:template match="Knob">
-	<webaudio-knob id="knob-{@param}"
+	<webaudio-knob id="knob-{@param}" a2w-control="{@param}"
 		src="{@image}" style="position:absolute; left:{@x}px; top:{@y}px" 
 		value="0" max="{@frames - 1}" step="1" sprites="{@frames - 1}" tooltip="%d" diameter="-1">
 	<xsl:text> </xsl:text>
@@ -39,7 +64,7 @@
   </xsl:template>
 
   <xsl:template match="Slider">
-	<webaudio-slider id="knob-{@param}"
+	<webaudio-slider id="knob-{@param}" a2w-control="{@param}"
 		src="{@image_bg}" knobsrc="{@image_handle}" style="position:absolute; left:{@x}px; top:{@y}px" 
 		value="0" max="100" step="1" tooltip="%d">
 		<xsl:attribute name="direction">
@@ -53,7 +78,7 @@
   </xsl:template>
 
   <xsl:template match="OnOffButton">
-	<webaudio-switch id="switch-{@param}"
+	<webaudio-switch id="switch-{@param}" a2w-control="{@param}"
 		src="{@image}" style="position:absolute; left:{@x}px; top:{@y}px" diameter="-1">
 	<xsl:text> </xsl:text>
 	</webaudio-switch>
