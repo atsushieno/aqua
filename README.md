@@ -14,7 +14,9 @@ There are handful of great instruments with ARIA UI such as  [Unreal Instruments
 
 ## License notice
 
-The scripting part is available under the MIT License.
+My scripting part is available under the MIT License.
+
+webaudio-controls, webcomponents-lite, and Vue.js are distributed by each developers under their respective licenses (Apache, BSD-like, MIT).
 
 UI METAL GTX, UI Standard Guitar, and UI 1912 are freely available like public domain (even no credits required).
 
