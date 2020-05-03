@@ -91,6 +91,14 @@ function processAriaGuiBlob(bankXmlFile, doc, ariaGuiPathAbs, ariaGuiDocTextRaw)
 	};
 }
 
+// `<a href="..." target="instFrame">` did not work on the embedded webview, but this simple workaround works.
+function loadProgramXhtmlOnInstFrame(el) {
+	var programXhtmlFile = el.getAttribute("a2w-source");
+	console.log(programXhtmlFile);
+	var instFrame = document.getElementById("instFrame");
+	instFrame.setAttribute("src", programXhtmlFile);
+}
+
 //--></script>
 </head>
 
@@ -101,12 +109,12 @@ function processAriaGuiBlob(bankXmlFile, doc, ariaGuiPathAbs, ariaGuiDocTextRaw)
 				<img width="360" height="120" v-bind:src="pL.thumbnail" />
 				<ul>
 					<li v-for="p in pL.programList">
-						<a v-bind:href="p.source" target="instFrame">{{ p.name }}</a>
+						<span onclick="loadProgramXhtmlOnInstFrame(this)" v-bind:a2w-source="p.source" target="instFrame">{{ p.name }}</span>
 					</li>
 				</ul>
 			</div>
 		</div>
-		<iframe style="position:absolute; left:400px; top: 0px" width="800" height="340" name="instFrame"></iframe>
+		<iframe id="instFrame" name="instFrame" style="position:absolute; left:400px; top: 0px" width="800" height="340"></iframe>
 		<webaudio-keyboard id="preview-keyboard" keys="75" width="760" height="60"
 			style="position:absolute; left:420px; top: 340px"  />
 	</div>
