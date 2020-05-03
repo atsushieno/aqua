@@ -1,5 +1,8 @@
 <html>
 <head>
+	<style type="text/css">
+		.inst-list-item:hover { color: blue }
+	</style>
 <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
 <script src="webaudio-controls.js"></script>
 <script type="text/javascript">//<!--
@@ -107,11 +110,10 @@ function loadProgramXhtmlOnInstFrame(el) {
 		<div style="width: 400px; height: 400px; overflow:scroll">
 			<div v-for="pL in programList">
 				<img width="360" height="120" v-bind:src="pL.thumbnail" />
-				<ul>
-					<li v-for="p in pL.programList">
-						<span onclick="loadProgramXhtmlOnInstFrame(this)" v-bind:a2w-source="p.source" target="instFrame">{{ p.name }}</span>
-					</li>
-				</ul>
+				<div v-for="p in pL.programList" style="width: 350px; border-radius: 3px; border-bottom: 1px solid; margin: 3px; padding: 2px">
+					<span type="button" class="inst-list-item"
+					onclick="loadProgramXhtmlOnInstFrame(this)" v-bind:a2w-source="p.source" target="instFrame">{{p.name}}</span>
+				</div>
 			</div>
 		</div>
 		<iframe id="instFrame" name="instFrame" style="position:absolute; left:400px; top: 0px" width="800" height="340"></iframe>
