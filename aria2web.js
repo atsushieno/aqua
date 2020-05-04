@@ -3,20 +3,19 @@ Aria2Web = {};
 if (typeof(ControlChangeCallback) != "undefined")
 	Aria2Web.notifyControlChange = ControlChangeCallback;
 else
-	Aria2Web.notifyControlChange = function(instrumentID, controlId, value) {
-		console.log(instrumentID + " : change event CC: " + controlId + " = " + value);
+	Aria2Web.notifyControlChange = function(controlId, value) {
+		console.log("change event CC: " + controlId + " = " + value);
 	};
 if (typeof(NoteCallback) != "undefined")
 	Aria2Web.notifyNoteMessage = NoteCallback;
 else
-	Aria2Web.notifyNoteMessage = function(instrumentID, state, key) {
-		console.log(instrumentID + " : note event: " + state + " " + key);
+	Aria2Web.notifyNoteMessage = function(state, key) {
+		console.log("note event: " + state + " " + key);
 	};
 
 function setupWebAudioControlChangeEvent(e) {
 	e.addEventListener("change", () => {
 		Aria2Web.notifyControlChange(
-			document.Aria2WebInstrument,
 			Number(e.getAttribute("a2w-control")),
 			e.value);
 		});
@@ -25,7 +24,6 @@ function setupWebAudioControlChangeEvent(e) {
 function setupWebAudioNoteEvent(e) {
 	e.addEventListener("change", (evt) => {
 		Aria2Web.notifyNoteMessage(
-			document.Aria2WebInstrument,
 			evt.note[0],
 			evt.note[1]);
 		});
