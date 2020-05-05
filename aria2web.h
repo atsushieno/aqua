@@ -3,14 +3,14 @@
 /* These functions should be part of the public API */
 
 typedef struct aria2web_tag aria2web;
-// The value and velocity could be float, but webaudio-controls seems to handle them in integer.
-typedef void(* aria2web_control_change_callback)(aria2web* context, int cc, int value);
-typedef void(* aria2web_note_callback)(aria2web* context, int key, int velocity);
+/* The value and velocity could be float, but webaudio-controls seems to handle them in integer. */
+typedef void(* aria2web_control_change_callback)(void* context, int cc, int value);
+typedef void(* aria2web_note_callback)(void* context, int key, int velocity);
 
 aria2web* aria2web_create();
 void aria2web_start(aria2web* context);
-void aria2web_set_control_change_callback(aria2web* context, aria2web_control_change_callback callback);
-void aria2web_set_note_callback(aria2web* context, aria2web_note_callback callback);
+void aria2web_set_control_change_callback(aria2web* a2w, aria2web_control_change_callback callback, void* context);
+void aria2web_set_note_callback(aria2web* a2w, aria2web_note_callback callback, void* context);
 void aria2web_stop(aria2web* context);
 
 
@@ -45,17 +45,22 @@ int a2w_get_http_server_port_number()
 
 typedef struct aria2web_tag {
 
+	long serial;
 	pthread_t webview_thread;
 	pthread_t http_server_thread;
 	void* webview{nullptr};
 	bool http_server_started{false};
 	aria2web_control_change_callback control_change_callback{nullptr};
+	void* cc_callback_context{nullptr};
 	aria2web_note_callback note_callback{nullptr};
+	void* note_callback_context{nullptr};
 
 	void start()
 	{
+		serial = (int) random();
 		pthread_create(&http_server_thread, NULL, a2w_run_http_server, this);
 		struct timespec tm;
+		tm.tv_sec = 0;
 		tm.tv_nsec = 1000;
 		while (!http_server_started)
 			nanosleep(&tm, NULL);
@@ -101,10 +106,6 @@ const char* mime_types[] = {"text/html", "application/xml", "image/png" };
 
 const char* get_mime_type_from_filename(char* filename) {
 	std::string s{filename};
-	if (s.size() > 4) {
-		printf("filename: %s, size %d, compareXML: %d\n", filename, s.size(), s.compare(s.size() - 4, 4, ".xml"));
-		printf("filename: %s, size %d, comparePNG: %d\n", filename, s.size(), s.compare(s.size() - 4, 4, ".png"));
-	} else printf("FILENAME: %s\n", filename);
 	if (s.size() > 4 && s.compare(s.size() - 4, 4, ".xml") == 0)
 		return mime_types[1];
 	if (s.size() > 4 && s.compare(s.size() - 4, 4, ".png") == 0)
@@ -117,11 +118,11 @@ void handle_request(struct http_request_s* request) {
 
 	struct http_string_s target = http_request_target(request);
 	char* targetPath = (char*) calloc(target.len + 2, 1);
-	// FIXME: make sure that the requested resource is under pwd.
+	/* FIXME: make sure that the requested resource is under pwd. */
 	targetPath[0] = '.';
 	memcpy(targetPath + 1, target.buf, target.len);
 	targetPath[target.len + 1] = NULL;
-	log_debug(targetPath);
+	/* log_debug(targetPath); */
 	uri_unescape_in_place(targetPath);
 	uri_strip_query_string(targetPath);
 	
@@ -148,21 +149,23 @@ void handle_request(struct http_request_s* request) {
 }
 
 void* a2w_run_http_server(void* context) {
-	auto a2w = (aria2web_tag*) context;
+	auto a2w = (aria2web*) context;
 	struct http_server_s* server = http_server_init(37564, handle_request);
 	a2w->http_server_started = TRUE;
 	http_server_listen(server);
 	return nullptr;
 }
 
-void aria2web_set_control_change_callback(aria2web* context, aria2web_control_change_callback callback)
+void aria2web_set_control_change_callback(aria2web* a2w, aria2web_control_change_callback callback, void* callbackContext)
 {
-	context->control_change_callback = callback;
+	a2w->control_change_callback = callback;
+	a2w->cc_callback_context = callbackContext;
 }
 
-void aria2web_set_note_callback(aria2web* context, aria2web_note_callback callback)
+void aria2web_set_note_callback(aria2web* a2w, aria2web_note_callback callback, void* callbackContext)
 {
-	context->note_callback = callback;
+	a2w->note_callback = callback;
+	a2w->note_callback_context = callbackContext;
 }
 
 void parse_js_two_array_items(const char* req, int* ret1, int* ret2)
@@ -188,7 +191,7 @@ void webview_callback_control_change(const char *seq, const char *req, void *arg
 
 	auto a2w = (aria2web*) arg;
 	if (a2w && a2w->control_change_callback)
-		a2w->control_change_callback(a2w, cc, val);
+		a2w->control_change_callback(a2w->cc_callback_context, cc, val);
 	else {
 		log_debug("control change callback is invoked");
 		log_debug(seq);
@@ -201,9 +204,9 @@ void webview_callback_note(const char *seq, const char *req, void *arg) {
 	int key = 0, vel = 0;
 	parse_js_two_array_items(req, &key, &vel);
 
-	auto a2w = (aria2web_tag*) arg;
+	auto a2w = (aria2web*) arg;
 	if (a2w && a2w->note_callback)
-		a2w->note_callback(a2w, key, vel);
+		a2w->note_callback(a2w->note_callback_context, key, vel);
 	else {
 		log_debug("note callback is invoked");
 		log_debug(seq);
@@ -218,7 +221,7 @@ void* a2w_run_webview_loop(void* context) {
 	char* url = strdup(urlfmt);
 	sprintf(url, urlfmt, port);
 
-	auto a2w = (aria2web_tag*) context;
+	auto a2w = (aria2web*) context;
 	void* w = a2w->webview = webview_create(true, nullptr);
 	webview_set_title(w, "Aria2Web embedded example");
 	webview_set_size(w, 1200, 450, WEBVIEW_HINT_NONE);
@@ -230,4 +233,4 @@ void* a2w_run_webview_loop(void* context) {
 	return nullptr;
 }
 
-#endif // ARIA2WEB_IMPL
+#endif /* ARIA2WEB_IMPL */
