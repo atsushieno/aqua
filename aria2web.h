@@ -28,7 +28,6 @@ void aria2web_stop(aria2web* context);
 #include <pthread.h>
 
 #include <webview.h>
-#define HTTPSERVER_IMPL
 #include <httpserver.h>
 
 
@@ -44,8 +43,6 @@ int a2w_get_http_server_port_number()
 }
 
 typedef struct aria2web_tag {
-
-	long serial;
 	pthread_t webview_thread;
 	pthread_t http_server_thread;
 	void* webview{nullptr};
@@ -57,7 +54,6 @@ typedef struct aria2web_tag {
 
 	void start()
 	{
-		serial = (int) random();
 		pthread_create(&http_server_thread, NULL, a2w_run_http_server, this);
 		struct timespec tm;
 		tm.tv_sec = 0;

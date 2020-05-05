@@ -1,3 +1,4 @@
+#define HTTPSERVER_IMPL
 #define ARIA2WEB_IMPL
 #include "aria2web.h"
 

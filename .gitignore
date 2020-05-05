@@ -66,3 +66,4 @@ node_modules/
 
 # additional items for this app
 aria2web-host
+aria2web-lv2ui.so
