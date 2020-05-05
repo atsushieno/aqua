@@ -1,3 +1,4 @@
+#include <vector>
 #include <lv2/lv2plug.in/ns/lv2core/lv2.h>
 #include <lv2/lv2plug.in/ns/extensions/ui/ui.h>
 #include <lv2/lv2plug.in/ns/ext/atom/atom.h>
@@ -22,7 +23,7 @@ typedef struct aria2weblv2ui_tag {
 	LV2UI_Controller controller;
 	LV2UI_Widget *widget;
 	const LV2_Feature *const *features;
-	int urid_atom, urid_beat_time, urid_midi_event;
+	int urid_atom, urid_frame_time, urid_midi_event;
 	
 	char atom_buffer[50];
 } aria2weblv2ui;
@@ -30,7 +31,7 @@ typedef struct aria2weblv2ui_tag {
 char* fill_atom_message_base(aria2weblv2ui* a, LV2_Atom_Sequence* seq)
 {
 	auto events = (LV2_Atom_Event*) ((char*) seq + sizeof (LV2_Atom_Sequence));
-	seq->body.unit = a->urid_beat_time;
+	seq->body.unit = a->urid_frame_time;
 	auto ev = &events[0];
 	auto msg = ((char*) ev + sizeof (LV2_Atom_Event));
 	ev->time.frames = 0;
@@ -92,11 +93,12 @@ LV2UI_Handle aria2web_lv2ui_instantiate(
 	ret->widget = widget;
 	ret->features = features;
 
-	for (auto f : std::vector<const LV2_Feature*>(features)) {
-		if (strcmp(f.URI, LV2_ATOM_URI) == 0) {
-			auto urid = (LV2_URID_Map*) f.data;
+	for (int i = 0; features[i]; i++) {
+		auto f = features[i];
+		if (strcmp(f->URI, LV2_ATOM_URI) == 0) {
+			auto urid = (LV2_URID_Map*) f->data;
 			ret->urid_atom = urid->map(urid->handle, LV2_ATOM_URI);
-			ret->urid_beat_time = urid->map(urid->handle, LV2_ATOM__beatTime);
+			ret->urid_frame_time = urid->map(urid->handle, LV2_ATOM__frameTime);
 			ret->urid_midi_event = urid->map(urid->handle, LV2_MIDI__MidiEvent);
 			break;
 		}
