@@ -26,5 +26,6 @@ aria2web is designed to be used for audio plugin UI. `aria2web-host.c` is a proo
 - My code (`aria2web*`) is available under the MIT License.
 - webaudio-controls, webcomponents-lite, and Vue.js are distributed by each developers under their respective licenses (Apache, BSD-like, MIT).
 - `httpserver.h` and `webview` are available under the MIT license.
+- sfizz is available under the BSD license.
 - UI METAL GTX, UI Standard Guitar, and UI 1912 are freely available like public domain (no credits required: `＊ライセンスについて ・ライセンスフリーです ・クレジット表記は不要です`).
 - karoryfer-bigcat.cello is under CC-BY 4.0 License.

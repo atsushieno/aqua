@@ -18,13 +18,14 @@ int WINAPI WinMain(HINSTANCE hInt, HINSTANCE hPrevInst, LPSTR lpCmdLine,
 #else
 int main() {
 #endif
-	aria2web a2w;
-	aria2web_set_control_change_callback(&a2w, sample_cc_callback, nullptr);
-	aria2web_set_note_callback(&a2w, sample_note_callback, nullptr);
-	a2w.start();
+	auto a2w = aria2web_create();
+	aria2web_set_control_change_callback(a2w, sample_cc_callback, nullptr);
+	aria2web_set_note_callback(a2w, sample_note_callback, nullptr);
+	aria2web_start(a2w);
 	puts("Hit [CR] to stop");
 	getchar();
 	puts("stopped.");
-	a2w.stop();
+	aria2web_stop(a2w);
+	aria2web_free(a2w);
 }
 

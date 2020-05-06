@@ -72,6 +72,13 @@ typedef struct aria2web_tag {
 
 };
 
+aria2web* aria2web_create() { return new aria2web(); }
+
+void aria2web_free(aria2web* instance) { delete instance; }
+
+void aria2web_start(aria2web* instance) { instance->start(); }
+
+void aria2web_stop(aria2web* instance) { instance->stop(); }
 
 void uri_unescape_in_place(char* p) {
 	int dst = 0;

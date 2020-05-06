@@ -4,3 +4,6 @@
 [submodule "external/httpserver.h"]
 	path = external/httpserver.h
 	url = https://github.com/jeremycw/httpserver.h.git
+[submodule "external/sfizz"]
+	path = external/sfizz
+	url = https://github.com/sfztools/sfizz.git

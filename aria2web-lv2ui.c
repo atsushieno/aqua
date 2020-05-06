@@ -12,7 +12,7 @@ extern "C" {
 
 // rewrite this part to whichever port your plugin is listening.
 #ifndef ARIA2WEB_LV2_CONTROL_PORT
-#define ARIA2WEB_LV2_CONTROL_PORT 0
+#define ARIA2WEB_LV2_CONTROL_PORT 0 //  0 is sfizz control-in port.
 #endif
 
 typedef struct aria2weblv2ui_tag {
@@ -42,31 +42,30 @@ char* fill_atom_message_base(aria2weblv2ui* a, LV2_Atom_Sequence* seq)
 	return msg;
 }
 
+// Unlike the name implies, it is actually not that general, but more specific to sfizz...
+// See https://github.com/sfztools/sfizz/blob/a1fdfa2e/lv2/sfizz.c#L491 for MIDI message processing details.
 void a2wlv2_cc_callback(void* context, int cc, int value)
 {
 	auto a = (aria2weblv2ui*) context;
 
-	puts("a2wlv2_cc_callback invoked");
-
 	auto seq = (LV2_Atom_Sequence*) a->atom_buffer;
 	char* msg = fill_atom_message_base(a, seq);
-	msg[0] = 0xB0;
+	msg[0] = 0xB0; // channel does not matter on sfizz
 	msg[1] = (char) cc;
 	msg[2] = (char) value;
 	
 	a->write_function(a->controller, ARIA2WEB_LV2_CONTROL_PORT, seq->atom.size + sizeof(LV2_Atom), LV2_UI__floatProtocol, a->atom_buffer);
 }
 
+// Unlike the name implies, it is actually not that general, but more specific to sfizz...
+// See https://github.com/sfztools/sfizz/blob/a1fdfa2e/lv2/sfizz.c#L491 for MIDI message processing details.
 void a2wlv2_note_callback(void* context, int key, int velocity)
 {
 	auto a = (aria2weblv2ui*) context;
-
-	puts("a2wlv2_note_callback invoked");
 	
-
 	auto seq = (LV2_Atom_Sequence*) a->atom_buffer;
 	char* msg = fill_atom_message_base(a, seq);
-	msg[0] = velocity == 0 ? 0x80 : 0x90;
+	msg[0] = velocity == 0 ? 0x80 : 0x90; // channel does not matter on sfizz
 	msg[1] = (char) key;
 	msg[2] = (char) velocity;
 	
