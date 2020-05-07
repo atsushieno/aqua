@@ -90,6 +90,8 @@ LV2UI_Handle aria2web_lv2ui_instantiate(
 	ret->controller = controller;
 	ret->features = features;
 
+	void* parentWindow = nullptr;
+
 	for (int i = 0; features[i]; i++) {
 		auto f = features[i];
 		if (strcmp(f->URI, LV2_ATOM_URI) == 0) {
@@ -98,9 +100,11 @@ LV2UI_Handle aria2web_lv2ui_instantiate(
 			ret->urid_frame_time = urid->map(urid->handle, LV2_ATOM__frameTime);
 			ret->urid_midi_event = urid->map(urid->handle, LV2_MIDI__MidiEvent);
 			break;
+		} else if (strcmp(f->URI, LV2_UI__parent) == 0) {
+			parentWindow = f->data;
 		}
 	}
-	aria2web_start(ret->a2w);
+	aria2web_start(ret->a2w, parentWindow);
 	*widget = aria2web_get_native_window(ret->a2w);
 }
 

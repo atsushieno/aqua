@@ -8,7 +8,7 @@ typedef void(* aria2web_control_change_callback)(void* context, int cc, int valu
 typedef void(* aria2web_note_callback)(void* context, int key, int velocity);
 
 aria2web* aria2web_create();
-void aria2web_start(aria2web* context);
+void aria2web_start(aria2web* context, void* parentWindow = nullptr);
 void aria2web_set_control_change_callback(aria2web* a2w, aria2web_control_change_callback callback, void* context);
 void aria2web_set_note_callback(aria2web* a2w, aria2web_note_callback callback, void* context);
 void aria2web_stop(aria2web* context);
@@ -46,6 +46,7 @@ typedef struct aria2web_tag {
 	pthread_t webview_thread;
 	pthread_t http_server_thread;
 	void* webview{nullptr};
+	void* parent_window{nullptr};
 	bool http_server_started{false};
 	bool webview_ready{false};
 	aria2web_control_change_callback control_change_callback{nullptr};
@@ -53,7 +54,7 @@ typedef struct aria2web_tag {
 	aria2web_note_callback note_callback{nullptr};
 	void* note_callback_context{nullptr};
 
-	void start()
+	void start(void* parentWindow = nullptr)
 	{
 		pthread_create(&http_server_thread, NULL, a2w_run_http_server, this);
 		struct timespec tm;
@@ -61,6 +62,7 @@ typedef struct aria2web_tag {
 		tm.tv_nsec = 1000;
 		while (!http_server_started)
 			nanosleep(&tm, NULL);
+		parent_window = parentWindow;
 		pthread_create(&webview_thread, NULL, a2w_run_webview_loop, this);
 		tm.tv_sec = 0;
 		tm.tv_nsec = 1000;
@@ -81,7 +83,7 @@ aria2web* aria2web_create() { return new aria2web(); }
 
 void aria2web_free(aria2web* instance) { delete instance; }
 
-void aria2web_start(aria2web* instance) { instance->start(); }
+void aria2web_start(aria2web* instance, void* parentWindow) { instance->start(parentWindow); }
 
 void aria2web_stop(aria2web* instance) { instance->stop(); }
 
@@ -234,7 +236,7 @@ void* a2w_run_webview_loop(void* context) {
 	sprintf(url, urlfmt, port);
 
 	auto a2w = (aria2web*) context;
-	void* w = a2w->webview = webview_create(true, nullptr);
+	void* w = a2w->webview = webview_create(true, a2w->parent_window);
 	webview_set_title(w, "Aria2Web embedded example");
 	webview_set_size(w, 1200, 450, WEBVIEW_HINT_NONE);
 	webview_navigate(w, url);
