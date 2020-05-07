@@ -21,7 +21,6 @@ typedef struct aria2weblv2ui_tag {
 	const char *bundle_path;
 	LV2UI_Write_Function write_function;
 	LV2UI_Controller controller;
-	LV2UI_Widget *widget;
 	const LV2_Feature *const *features;
 	int urid_atom, urid_frame_time, urid_midi_event;
 	
@@ -89,7 +88,6 @@ LV2UI_Handle aria2web_lv2ui_instantiate(
 	ret->bundle_path = bundle_path;
 	ret->write_function = write_function;
 	ret->controller = controller;
-	ret->widget = widget;
 	ret->features = features;
 
 	for (int i = 0; features[i]; i++) {
@@ -102,6 +100,8 @@ LV2UI_Handle aria2web_lv2ui_instantiate(
 			break;
 		}
 	}
+	aria2web_start(ret->a2w);
+	*widget = aria2web_get_native_window(ret->a2w);
 }
 
 void aria2web_lv2ui_cleanup(LV2UI_Handle ui)
@@ -116,7 +116,7 @@ LV2UI_Descriptor uidesc;
 
 LV2_SYMBOL_EXPORT const LV2UI_Descriptor* lv2ui_descriptor(uint32_t index)
 {
-	uidesc.URI = "https://github.com/atsushieno/aria2web/ns/1.0";
+	uidesc.URI = "https://github.com/atsushieno/aria2web#ui";
 	uidesc.instantiate = aria2web_lv2ui_instantiate;
 	uidesc.cleanup = aria2web_lv2ui_cleanup;
 	uidesc.port_event = nullptr;

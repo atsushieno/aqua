@@ -12,7 +12,7 @@ void aria2web_start(aria2web* context);
 void aria2web_set_control_change_callback(aria2web* a2w, aria2web_control_change_callback callback, void* context);
 void aria2web_set_note_callback(aria2web* a2w, aria2web_note_callback callback, void* context);
 void aria2web_stop(aria2web* context);
-
+void* aria2web_get_native_window(aria2web* instance);
 
 /* The rest of the code is private */
 
@@ -47,6 +47,7 @@ typedef struct aria2web_tag {
 	pthread_t http_server_thread;
 	void* webview{nullptr};
 	bool http_server_started{false};
+	bool webview_ready{false};
 	aria2web_control_change_callback control_change_callback{nullptr};
 	void* cc_callback_context{nullptr};
 	aria2web_note_callback note_callback{nullptr};
@@ -61,6 +62,10 @@ typedef struct aria2web_tag {
 		while (!http_server_started)
 			nanosleep(&tm, NULL);
 		pthread_create(&webview_thread, NULL, a2w_run_webview_loop, this);
+		tm.tv_sec = 0;
+		tm.tv_nsec = 1000;
+		while (!webview_ready)
+			nanosleep(&tm, NULL);
 	}
 
 	void stop()
@@ -79,6 +84,10 @@ void aria2web_free(aria2web* instance) { delete instance; }
 void aria2web_start(aria2web* instance) { instance->start(); }
 
 void aria2web_stop(aria2web* instance) { instance->stop(); }
+
+void* aria2web_get_native_window(aria2web* instance) {
+	return webview_get_window(instance->webview);
+}
 
 void uri_unescape_in_place(char* p) {
 	int dst = 0;
@@ -232,6 +241,7 @@ void* a2w_run_webview_loop(void* context) {
 	free(url);
 	webview_bind(w, "ControlChangeCallback", webview_callback_control_change, context);
 	webview_bind(w, "NoteCallback", webview_callback_note, context);
+	a2w->webview_ready = TRUE;
 	webview_run(w);
 	return nullptr;
 }

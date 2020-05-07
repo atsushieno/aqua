@@ -21,30 +21,30 @@
 midnam:interface a lv2:ExtensionData .
 midnam:update a lv2:Feature .
 
-<http://sfztools.github.io/sfizz#config>
+<https://github.com/atsushieno/aria2web#config>
   a pg:Group ;
   lv2:symbol "config" ;
   lv2:name "Configuration",
     "Configuration"@fr ,
     "Impostazioni"@it .
 
-<http://sfztools.github.io/sfizz:sfzfile>
+<https://github.com/atsushieno/aria2web:sfzfile>
   a lv2:Parameter ;
   rdfs:label "SFZ file",
     "Fichier SFZ"@fr ,
     "File SFZ"@it ;
   rdfs:range atom:Path .
 
-<http://sfztools.github.io/sfizz>
+<https://github.com/atsushieno/aria2web>
   a doap:Project, lv2:Plugin, lv2:InstrumentPlugin ;
 
-  doap:name "sfizz-aria2web" ;
+  doap:name "aria2web" ;
   doap:license <https://spdx.org/licenses/MIT> ;
   doap:maintainer [
     foaf:name     "Atsushi Eno" ;
     foaf:homepage <https://github.com/atsushieno/aria2web> ;
   ] ;
-  rdfs:comment "SFZ sampler with ARIA extension UI support" ;
+  rdfs:comment "SFZ sampler with ARIA extension UI support powered by sfizz" ;
 
   lv2:minorVersion 1 ;
   lv2:microVersion 0 ;
@@ -59,7 +59,7 @@ midnam:update a lv2:Feature .
   opts:supportedOption param:sampleRate ;
   opts:supportedOption bufsize:maxBlockLength, bufsize:nominalBlockLength ;
 
-  patch:writable <http://sfztools.github.io/sfizz:sfzfile> ;
+  patch:writable <https://github.com/atsushieno/aria2web:sfzfile> ;
 
   lv2:port [
     a lv2:InputPort, atom:AtomPort ;
@@ -107,7 +107,7 @@ midnam:update a lv2:Feature .
     lv2:name "Polyphony",
       "Polyphonie"@fr ,
       "Polifonia"@it ;
-    pg:group <http://sfztools.github.io/sfizz#config> ;
+    pg:group <https://github.com/atsushieno/aria2web#config> ;
     lv2:portProperty pprop:notAutomatic ;
     lv2:portProperty pprop:expensive ;
     lv2:portProperty lv2:integer ;
@@ -152,7 +152,7 @@ midnam:update a lv2:Feature .
     lv2:name "Internal oversampling factor",
       "Facteur de suréchantillonnage interne"@fr ,
       "Fattore Sovracampionamento Interno"@it ;
-    pg:group <http://sfztools.github.io/sfizz#config> ;
+    pg:group <https://github.com/atsushieno/aria2web#config> ;
     lv2:portProperty pprop:notAutomatic ;
     lv2:portProperty pprop:expensive ;
     lv2:portProperty lv2:integer ;
@@ -187,7 +187,7 @@ midnam:update a lv2:Feature .
     lv2:name "Preload size",
       "Taille préchargée"@fr ,
       "Grandezza Precaricamento"@it ;
-    pg:group <http://sfztools.github.io/sfizz#config> ;
+    pg:group <https://github.com/atsushieno/aria2web#config> ;
     lv2:portProperty pprop:notAutomatic ;
     lv2:portProperty pprop:expensive ;
     lv2:portProperty lv2:integer ;
@@ -237,8 +237,8 @@ midnam:update a lv2:Feature .
     lv2:maximum 1 ;
   ] ;
 
-  lv2:ui <https://github.com/atsushieno/aria2web> .
+  ui:ui <https://github.com/atsushieno/aria2web#ui> .
 
-<http://github.com/atsushieno/aria2web>
-  a ui:X11UI ;
+<https://github.com/atsushieno/aria2web#ui>
+  a ui:Gtk3UI ;
   ui:binary <aria2web-lv2ui.so> .

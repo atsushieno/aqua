@@ -12,5 +12,6 @@ if [ ! -d sfizz-aria2web ] ; then
   cd .. ;
 fi
 cp aria2web-lv2ui.so sfizz-aria2web/dist/lib/lv2/sfizz.lv2/
-cp sfizz-aria2web.ttl sfizz-aria2web/dist/lib/lv2/sfizz.lv2/
+cp aria2web.ttl sfizz-aria2web/dist/lib/lv2/sfizz.lv2/
+cp manifest.ttl sfizz-aria2web/dist/lib/lv2/sfizz.lv2/
 echo "build successfully completed."
