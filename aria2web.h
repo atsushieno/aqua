@@ -49,6 +49,7 @@ typedef struct aria2web_tag {
 	void* parent_window{nullptr};
 	bool http_server_started{false};
 	bool webview_ready{false};
+	void* component_ref{nullptr};
 	aria2web_control_change_callback control_change_callback{nullptr};
 	void* cc_callback_context{nullptr};
 	aria2web_note_callback note_callback{nullptr};
@@ -73,6 +74,7 @@ typedef struct aria2web_tag {
 	void stop()
 	{
 		webview_destroy(webview);
+		g_object_unref(component_ref);
 		pthread_cancel(&webview_thread);
 		pthread_cancel(&http_server_thread);
 	}
@@ -236,13 +238,21 @@ void* a2w_run_webview_loop(void* context) {
 	sprintf(url, urlfmt, port);
 
 	auto a2w = (aria2web*) context;
-	void* w = a2w->webview = webview_create(true, a2w->parent_window);
-	webview_set_title(w, "Aria2Web embedded example");
-	webview_set_size(w, 1200, 450, WEBVIEW_HINT_NONE);
+	void* w = a2w->webview = webview_create(true, nullptr);
+	//webview_set_title(w, "Aria2Web embedded example");
+	//webview_set_size(w, 1200, 450, WEBVIEW_HINT_NONE);
 	webview_navigate(w, url);
 	free(url);
 	webview_bind(w, "ControlChangeCallback", webview_callback_control_change, context);
 	webview_bind(w, "NoteCallback", webview_callback_note, context);
+	#if __linux__
+	auto gtkw = GTK_WINDOW(webview_get_window(w));
+	auto child = g_list_nth_data(gtk_container_get_children(GTK_CONTAINER(gtkw)), 0);
+	a2w->component_ref = g_object_ref(child);
+	gtk_container_remove(GTK_CONTAINER(gtkw), child);
+	gtk_widget_set_size_request(GTK_WIDGET(child), 1200, 450);
+	//gtk_container_add(GTK_CONTAINER(a2w->parent_window), child);
+	#endif
 	a2w->webview_ready = TRUE;
 	webview_run(w);
 	return nullptr;
