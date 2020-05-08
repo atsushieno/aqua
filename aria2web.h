@@ -12,7 +12,7 @@ void aria2web_start(aria2web* context, void* parentWindow = nullptr);
 void aria2web_set_control_change_callback(aria2web* a2w, aria2web_control_change_callback callback, void* context);
 void aria2web_set_note_callback(aria2web* a2w, aria2web_note_callback callback, void* context);
 void aria2web_stop(aria2web* context);
-void* aria2web_get_native_window(aria2web* instance);
+void* aria2web_get_native_widget(aria2web* instance);
 
 /* The rest of the code is private */
 
@@ -47,6 +47,7 @@ typedef struct aria2web_tag {
 	pthread_t http_server_thread;
 	void* webview{nullptr};
 	void* parent_window{nullptr};
+	void* webview_widget{nullptr};
 	bool http_server_started{false};
 	bool webview_ready{false};
 	void* component_ref{nullptr};
@@ -89,8 +90,8 @@ void aria2web_start(aria2web* instance, void* parentWindow) { instance->start(pa
 
 void aria2web_stop(aria2web* instance) { instance->stop(); }
 
-void* aria2web_get_native_window(aria2web* instance) {
-	return webview_get_window(instance->webview);
+void* aria2web_get_native_widget(aria2web* instance) {
+	return instance->webview_widget;
 }
 
 void uri_unescape_in_place(char* p) {
@@ -240,7 +241,7 @@ void* a2w_run_webview_loop(void* context) {
 	auto a2w = (aria2web*) context;
 	void* w = a2w->webview = webview_create(true, nullptr);
 	//webview_set_title(w, "Aria2Web embedded example");
-	//webview_set_size(w, 1200, 450, WEBVIEW_HINT_NONE);
+	webview_set_size(w, 1200, 450, WEBVIEW_HINT_FIXED);
 	webview_navigate(w, url);
 	free(url);
 	webview_bind(w, "ControlChangeCallback", webview_callback_control_change, context);
@@ -249,7 +250,9 @@ void* a2w_run_webview_loop(void* context) {
 	auto gtkw = GTK_WINDOW(webview_get_window(w));
 	auto child = g_list_nth_data(gtk_container_get_children(GTK_CONTAINER(gtkw)), 0);
 	a2w->component_ref = g_object_ref(child);
+	a2w->webview_widget = child;
 	gtk_container_remove(GTK_CONTAINER(gtkw), child);
+	gtk_widget_hide(GTK_WIDGET(gtkw));
 	gtk_widget_set_size_request(GTK_WIDGET(child), 1200, 450);
 	//gtk_container_add(GTK_CONTAINER(a2w->parent_window), child);
 	#endif

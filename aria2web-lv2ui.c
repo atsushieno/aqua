@@ -105,7 +105,7 @@ LV2UI_Handle aria2web_lv2ui_instantiate(
 		}
 	}
 	aria2web_start(ret->a2w, parentWindow);
-	*widget = aria2web_get_native_window(ret->a2w);
+	*widget = aria2web_get_native_widget(ret->a2w);
 }
 
 void aria2web_lv2ui_cleanup(LV2UI_Handle ui)
