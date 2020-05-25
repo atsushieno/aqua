@@ -246,16 +246,6 @@ void* a2w_run_webview_loop(void* context) {
 	free(url);
 	webview_bind(w, "ControlChangeCallback", webview_callback_control_change, context);
 	webview_bind(w, "NoteCallback", webview_callback_note, context);
-	#if __linux__
-	auto gtkw = GTK_WINDOW(webview_get_window(w));
-	auto child = g_list_nth_data(gtk_container_get_children(GTK_CONTAINER(gtkw)), 0);
-	a2w->component_ref = g_object_ref(child);
-	a2w->webview_widget = child;
-	gtk_container_remove(GTK_CONTAINER(gtkw), child);
-	gtk_widget_hide(GTK_WIDGET(gtkw));
-	gtk_widget_set_size_request(GTK_WIDGET(child), 1200, 450);
-	//gtk_container_add(GTK_CONTAINER(a2w->parent_window), child);
-	#endif
 	a2w->webview_ready = TRUE;
 	webview_run(w);
 	return nullptr;

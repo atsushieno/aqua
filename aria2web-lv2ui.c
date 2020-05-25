@@ -6,6 +6,7 @@
 #include <lv2/lv2plug.in/ns/ext/urid/urid.h>
 #define HTTPSERVER_IMPL
 #define ARIA2WEB_IMPL
+#include "lv2_external_ui.h"
 #include "aria2web.h"
 
 extern "C" {
@@ -23,6 +24,7 @@ typedef struct aria2weblv2ui_tag {
 	LV2UI_Controller controller;
 	const LV2_Feature *const *features;
 	int urid_atom, urid_frame_time, urid_midi_event;
+	LV2_External_UI_Widget *extui;
 	
 	char atom_buffer[50];
 } aria2weblv2ui;
@@ -71,6 +73,16 @@ void a2wlv2_note_callback(void* context, int key, int velocity)
 	a->write_function(a->controller, ARIA2WEB_LV2_CONTROL_PORT, seq->atom.size + sizeof(LV2_Atom), LV2_UI__floatProtocol, a->atom_buffer);
 }
 
+void extui_show_callback(LV2_External_UI_Widget* widget) {
+	printf("extui_show_callback!\n");
+}
+void extui_hide_callback(LV2_External_UI_Widget* widget) {	
+	printf("extui_hide_callback!\n");
+}
+void extui_run_callback(LV2_External_UI_Widget* widget) {
+	printf("extui_run_callback!\n");
+}
+
 LV2UI_Handle aria2web_lv2ui_instantiate(
 	const LV2UI_Descriptor *descriptor,
 	const char *plugin_uri,
@@ -100,11 +112,15 @@ LV2UI_Handle aria2web_lv2ui_instantiate(
 			ret->urid_frame_time = urid->map(urid->handle, LV2_ATOM__frameTime);
 			ret->urid_midi_event = urid->map(urid->handle, LV2_MIDI__MidiEvent);
 			break;
-		} else if (strcmp(f->URI, LV2_UI__parent) == 0) {
-			parentWindow = f->data;
+		} else if (strcmp(f->URI, LV2_EXTERNAL_UI__Host) == 0) {
+			auto extui = (LV2_External_UI_Widget*) f->data;
+			extui->show = extui_show_callback;
+			extui->hide = extui_hide_callback;
+			extui->run = extui_run_callback;
+			ret->extui = extui;
 		}
 	}
-	aria2web_start(ret->a2w, parentWindow);
+	aria2web_start(ret->a2w, nullptr);
 	*widget = aria2web_get_native_widget(ret->a2w);
 }
 

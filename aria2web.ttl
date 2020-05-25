@@ -17,6 +17,7 @@
 @prefix work:    <http://lv2plug.in/ns/ext/worker#> .
 @prefix midnam:  <http://ardour.org/lv2/midnam#> .
 @prefix ui:      <http://lv2plug.in/ns/extensions/ui#> .
+@prefix extui:   <http://kxstudio.sf.net/ns/lv2ext/external-ui#> .
 
 midnam:interface a lv2:ExtensionData .
 midnam:update a lv2:Feature .
@@ -240,5 +241,5 @@ midnam:update a lv2:Feature .
   ui:ui <https://github.com/atsushieno/aria2web#ui> .
 
 <https://github.com/atsushieno/aria2web#ui>
-  a ui:Gtk3UI ;
+  a extui:Widget ;
   ui:binary <aria2web-lv2ui.so> .
