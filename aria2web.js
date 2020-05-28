@@ -1,4 +1,8 @@
-// TODO: We are still unsure if this can be hooked at embedded environment. If not, try to move it to index.html.
+if (typeof(Aria2WebWindowCloseCallback) != "undefined") {
+	console.log("registering close event");
+	window.onclose = () => { console.log("CLOSING"); };
+	window.addEventListener("close", Aria2WebWindowCloseCallback);
+}
 Aria2Web = {};
 if (typeof(ControlChangeCallback) != "undefined")
 	Aria2Web.notifyControlChange = ControlChangeCallback;
