@@ -75,7 +75,6 @@ typedef struct aria2web_tag {
 	void stop()
 	{
 		webview_destroy(webview);
-		g_object_unref(component_ref);
 		pthread_cancel(&webview_thread);
 		pthread_cancel(&http_server_thread);
 	}
@@ -241,7 +240,7 @@ void* a2w_run_webview_loop(void* context) {
 	auto a2w = (aria2web*) context;
 	void* w = a2w->webview = webview_create(true, nullptr);
 	//webview_set_title(w, "Aria2Web embedded example");
-	webview_set_size(w, 1200, 450, WEBVIEW_HINT_FIXED);
+	webview_set_size(w, 1200, 450, WEBVIEW_HINT_NONE);
 	webview_navigate(w, url);
 	free(url);
 	webview_bind(w, "ControlChangeCallback", webview_callback_control_change, context);
