@@ -46,8 +46,8 @@ int a2w_get_http_server_port_number()
 }
 
 typedef struct aria2web_tag {
-	pthread_t webview_thread;
-	pthread_t http_server_thread;
+	pthread_t webview_thread{0};
+	pthread_t http_server_thread{0};
 	std::string web_local_file_path{};
 	void* webview{nullptr};
 	void* parent_window{nullptr};
@@ -65,6 +65,7 @@ typedef struct aria2web_tag {
 	void start(void* parentWindow = nullptr)
 	{
 		pthread_create(&http_server_thread, NULL, a2w_run_http_server, this);
+		pthread_setname_np(http_server_thread, "aria2web_httpserver");
 		struct timespec tm;
 		tm.tv_sec = 0;
 		tm.tv_nsec = 1000;
@@ -72,10 +73,13 @@ typedef struct aria2web_tag {
 			nanosleep(&tm, NULL);
 		parent_window = parentWindow;
 		pthread_create(&webview_thread, NULL, a2w_run_webview_loop, this);
+		pthread_setname_np(webview_thread, "aria2web_webview");
 		tm.tv_sec = 0;
 		tm.tv_nsec = 1000;
 		while (!webview_ready)
 			nanosleep(&tm, NULL);
+		while ((webview_widget = webview_get_window(webview)) == nullptr)
+		    nanosleep(&tm, NULL);
 	}
 
 	void stop()
@@ -275,7 +279,7 @@ void* a2w_run_webview_loop(void* context) {
 
 	auto a2w = (aria2web*) context;
 	void* w = a2w->webview = webview_create(true, nullptr);
-	//webview_set_title(w, "Aria2Web embedded example");
+	webview_set_title(w, "Aria2Web embedded example");
 	webview_set_size(w, 1200, 450, WEBVIEW_HINT_NONE);
 	webview_navigate(w, url);
 	free(url);
