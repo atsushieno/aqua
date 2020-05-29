@@ -8,7 +8,7 @@ typedef void(* aria2web_control_change_callback)(void* context, int cc, int valu
 typedef void(* aria2web_note_callback)(void* context, int key, int velocity);
 typedef void(* aria2web_window_close_callback)(void* context);
 
-aria2web* aria2web_create();
+aria2web* aria2web_create(const char* webLocalFilePath);
 void aria2web_start(aria2web* context, void* parentWindow = nullptr);
 void aria2web_set_control_change_callback(aria2web* a2w, aria2web_control_change_callback callback, void* context);
 void aria2web_set_note_callback(aria2web* a2w, aria2web_note_callback callback, void* context);
@@ -28,6 +28,7 @@ void* aria2web_get_native_widget(aria2web* instance);
 #include <assert.h>
 #include <sys/mman.h>
 #include <pthread.h>
+#include <string>
 
 #include <webview.h>
 #include <httpserver.h>
@@ -47,6 +48,7 @@ int a2w_get_http_server_port_number()
 typedef struct aria2web_tag {
 	pthread_t webview_thread;
 	pthread_t http_server_thread;
+	std::string web_local_file_path{};
 	void* webview{nullptr};
 	void* parent_window{nullptr};
 	void* webview_widget{nullptr};
@@ -79,15 +81,21 @@ typedef struct aria2web_tag {
 	void stop()
 	{
 		webview_destroy(webview);
-		pthread_cancel(&webview_thread);
-		pthread_cancel(&http_server_thread);
+		pthread_cancel(webview_thread);
+		pthread_cancel(http_server_thread);
 	}
 
-};
+} aria2web;
 
-aria2web* aria2web_create() { return new aria2web(); }
+aria2web* aria2web_create(const char* webLocalFilePath) {
+	auto ret = new aria2web(); 
+	ret->web_local_file_path = strdup(webLocalFilePath);
+	return ret;
+}
 
-void aria2web_free(aria2web* instance) { delete instance; }
+void aria2web_free(aria2web* instance) {
+	delete instance;
+}
 
 void aria2web_start(aria2web* instance, void* parentWindow) { instance->start(parentWindow); }
 
@@ -111,13 +119,13 @@ void uri_unescape_in_place(char* p) {
 		else
 			p[dst++] = p[i];
 	}
-	p[dst] = NULL;
+	p[dst] = '\0';
 }
 
 void uri_strip_query_string(char *s) {
 	for (int i = 0; s[i]; i++)
 		if (s[i] == '?') {
-			s[i] = NULL;
+			s[i] = '\0';
 			return;
 		}
 }
@@ -134,6 +142,8 @@ const char* get_mime_type_from_filename(char* filename) {
 }
 
 void handle_request(struct http_request_s* request) {
+	printf("CURRENT DIRECTORY IS: %s\n", get_current_dir_name());
+
 	struct http_response_s* response = http_response_init();
 
 	struct http_string_s target = http_request_target(request);
@@ -141,14 +151,17 @@ void handle_request(struct http_request_s* request) {
 	/* FIXME: make sure that the requested resource is under pwd. */
 	targetPath[0] = '.';
 	memcpy(targetPath + 1, target.buf, target.len);
-	targetPath[target.len + 1] = NULL;
+	targetPath[target.len + 1] = '\0';
 	/* log_debug(targetPath); */
 	uri_unescape_in_place(targetPath);
 	uri_strip_query_string(targetPath);
 	
 	const char* mimeType = get_mime_type_from_filename(targetPath);
 
-	int fd = open(targetPath, O_RDONLY);
+	auto a2w = (aria2web*) http_request_server_userdata(request);
+	std::string filePath = a2w->web_local_file_path.length() > 0 ? a2w->web_local_file_path + "/" + targetPath : targetPath;
+
+	int fd = open(filePath.c_str(), O_RDONLY);
 	free(targetPath);
 	if (fd == -1) {
 		puts("... was NOT found.");
@@ -171,6 +184,7 @@ void handle_request(struct http_request_s* request) {
 void* a2w_run_http_server(void* context) {
 	auto a2w = (aria2web*) context;
 	struct http_server_s* server = http_server_init(37564, handle_request);
+	http_server_set_userdata(server, a2w);
 	a2w->http_server_started = TRUE;
 	http_server_listen(server);
 	return nullptr;
@@ -199,7 +213,7 @@ void parse_js_two_array_items(const char* req, int* ret1, int* ret2)
 	assert(req[0] == '[');
 	int end = strlen(req);
 	assert(req[end - 1] == ']');
-	char* ptr = strchr(req, ',');
+	const char* ptr = strchr(req, ',');
 	assert(ptr != nullptr);
 	int pos = ptr - req;
 	assert(pos > 0);
@@ -248,13 +262,13 @@ void webview_callback_note(const char *seq, const char *req, void *arg) {
 	}
 }
 
-void on_dispatch(webview_t* w, void* context) {
+void on_dispatch(webview_t w, void* context) {
 	// FIXME: add gtk window close callback here.
-	printf("on_dispatch: %d\n", webview_get_window(w));
+	printf("on_dispatch: %d\n", webview_get_window(w) != nullptr);
 }
 
 void* a2w_run_webview_loop(void* context) {
-	char* urlfmt = "http://localhost:%d/index.html";
+	const char* urlfmt = "http://localhost:%d/index.html";
 	int port = a2w_get_http_server_port_number();
 	char* url = strdup(urlfmt);
 	sprintf(url, urlfmt, port);

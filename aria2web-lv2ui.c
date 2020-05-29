@@ -92,12 +92,13 @@ LV2UI_Handle aria2web_lv2ui_instantiate(
 	LV2UI_Widget *widget,
 	const LV2_Feature *const *features)
 {
-	aria2weblv2ui* ret = calloc(sizeof(aria2weblv2ui), 1);
-	ret->a2w = aria2web_create();
+	auto ret = (aria2weblv2ui*) calloc(sizeof(aria2weblv2ui), 1);
+	ret->a2w = aria2web_create(bundle_path);
 	aria2web_set_control_change_callback(ret->a2w, a2wlv2_cc_callback, ret);
 	aria2web_set_note_callback(ret->a2w, a2wlv2_note_callback, ret);
 	ret->plugin_uri = plugin_uri;
-	ret->bundle_path = bundle_path;
+	// FIXME: do not alter bundle path. Adjust it in aria2web.h. (it does not even free memory now)
+	ret->bundle_path = strdup((std::string{bundle_path} + "/resources").c_str());
 	ret->write_function = write_function;
 	ret->controller = controller;
 	ret->features = features;
@@ -122,6 +123,7 @@ LV2UI_Handle aria2web_lv2ui_instantiate(
 	}
 	aria2web_start(ret->a2w, nullptr);
 	*widget = aria2web_get_native_widget(ret->a2w);
+	return ret;
 }
 
 void aria2web_lv2ui_cleanup(LV2UI_Handle ui)

@@ -11,7 +11,7 @@ bool standalone{TRUE};
   using hexadecimal representation prefixed as in "#xx,#xx\n" format.
  */
 
-void sample_cc_callback(aria2web* context, int cc, int value)
+void sample_cc_callback(void* context, int cc, int value)
 {
 	if (standalone)
 		printf("sample CC callback: CC#%x = %d\n", cc, value);
@@ -19,7 +19,7 @@ void sample_cc_callback(aria2web* context, int cc, int value)
 		printf("C#%x,#%x\n", cc, value);
 }
 
-void sample_note_callback(aria2web* context, int key, int velocity)
+void sample_note_callback(void* context, int key, int velocity)
 {
 	if (standalone)
 		printf("sample Note callback: key %d velocity %d\n", key, velocity);
@@ -27,10 +27,10 @@ void sample_note_callback(aria2web* context, int key, int velocity)
 		printf("N#%x,#%x\n", key, velocity);
 }
 
-void sample_window_close_callback(aria2web* context, int key, int velocity)
+void sample_window_close_callback(void* context)
 {
 	printf("closing\n");
-	aria2web_stop(context);
+	aria2web_stop((aria2web*) context);
 	exit(0);
 }
 
@@ -44,7 +44,7 @@ int main(int argc, char** argv) {
 		if(strcmp(argv[i], "--plugin") == 0)
 			standalone = FALSE;
 
-	auto a2w = aria2web_create();
+	auto a2w = aria2web_create(get_current_dir_name());
 	aria2web_set_control_change_callback(a2w, sample_cc_callback, nullptr);
 	aria2web_set_note_callback(a2w, sample_note_callback, nullptr);
 	aria2web_set_window_close_callback(a2w, sample_window_close_callback, nullptr);

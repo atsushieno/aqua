@@ -15,4 +15,8 @@ fi
 cp aria2web-lv2ui.so sfizz-aria2web/dist/lib/lv2/sfizz.lv2/
 cp aria2web.ttl sfizz-aria2web/dist/lib/lv2/sfizz.lv2/
 cp manifest.ttl sfizz-aria2web/dist/lib/lv2/sfizz.lv2/
+mkdir -p sfizz-aria2web/dist/lib/lv2/sfizz.lv2/resources/
+cp index.html sfizz-aria2web/dist/lib/lv2/sfizz.lv2/resources/
+cp -R ui-* sfizz-aria2web/dist/lib/lv2/sfizz.lv2/resources/
+cp *.js sfizz-aria2web/dist/lib/lv2/sfizz.lv2/resources/
 echo "build successfully completed."
