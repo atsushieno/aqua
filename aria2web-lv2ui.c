@@ -24,7 +24,7 @@ typedef struct aria2weblv2ui_tag {
 	LV2UI_Controller controller;
 	const LV2_Feature *const *features;
 	int urid_atom, urid_frame_time, urid_midi_event;
-	LV2_External_UI_Widget *extui;
+	LV2_External_UI_Widget extui;
 	
 	char atom_buffer[50];
 } aria2weblv2ui;
@@ -114,15 +114,14 @@ LV2UI_Handle aria2web_lv2ui_instantiate(
 			ret->urid_midi_event = urid->map(urid->handle, LV2_MIDI__MidiEvent);
 			break;
 		} else if (strcmp(f->URI, LV2_EXTERNAL_UI__Host) == 0) {
-			auto extui = (LV2_External_UI_Widget*) f->data;
+			auto extui = &ret->extui;
 			extui->show = extui_show_callback;
 			extui->hide = extui_hide_callback;
 			extui->run = extui_run_callback;
-			ret->extui = extui;
 		}
 	}
 	aria2web_start(ret->a2w, nullptr);
-	*widget = aria2web_get_native_widget(ret->a2w);
+	*widget = &ret->extui;
 	return ret;
 }
 
