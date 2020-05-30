@@ -108,7 +108,7 @@ LV2UI_Handle aria2web_lv2ui_instantiate(
 
 	for (int i = 0; features[i]; i++) {
 		auto f = features[i];
-		if (strcmp(f->URI, LV2_ATOM_URI) == 0) {
+		if (strcmp(f->URI, LV2_URID__map) == 0) {
 			auto urid = (LV2_URID_Map*) f->data;
 			ret->urid_atom = urid->map(urid->handle, LV2_ATOM_URI);
 			ret->urid_frame_time = urid->map(urid->handle, LV2_ATOM__frameTime);
