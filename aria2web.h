@@ -46,7 +46,6 @@ int a2w_get_http_server_port_number()
 }
 
 typedef struct aria2web_tag {
-	pthread_t webview_thread{0};
 	pthread_t http_server_thread{0};
 	std::string web_local_file_path{};
 	void* webview{nullptr};
@@ -72,20 +71,12 @@ typedef struct aria2web_tag {
 		while (!http_server_started)
 			nanosleep(&tm, NULL);
 		parent_window = parentWindow;
-		pthread_create(&webview_thread, NULL, a2w_run_webview_loop, this);
-		pthread_setname_np(webview_thread, "aria2web_webview");
-		tm.tv_sec = 0;
-		tm.tv_nsec = 1000;
-		while (!webview_ready)
-			nanosleep(&tm, NULL);
-		while ((webview_widget = webview_get_window(webview)) == nullptr)
-		    nanosleep(&tm, NULL);
+		a2w_run_webview_loop(this);
 	}
 
 	void stop()
 	{
 		webview_destroy(webview);
-		pthread_cancel(webview_thread);
 		pthread_cancel(http_server_thread);
 	}
 
@@ -271,6 +262,9 @@ void on_dispatch(webview_t w, void* context) {
 	printf("on_dispatch: %d\n", webview_get_window(w) != nullptr);
 }
 
+// It used to be implemented to run on a dedicated thread, which still worked as a standalone UI
+// but as a plugin which is loaded and run under DAW GUI it violates UI threading principle, so
+// it was rewritten to run within the callers (a2w) thread.
 void* a2w_run_webview_loop(void* context) {
 	const char* urlfmt = "http://localhost:%d/index.html";
 	int port = a2w_get_http_server_port_number();
@@ -281,12 +275,12 @@ void* a2w_run_webview_loop(void* context) {
 	void* w = a2w->webview = webview_create(true, nullptr);
 	webview_set_title(w, "Aria2Web embedded example");
 	webview_set_size(w, 1200, 450, WEBVIEW_HINT_NONE);
-	webview_navigate(w, url);
-	free(url);
 	webview_bind(w, "ControlChangeCallback", webview_callback_control_change, context);
 	webview_bind(w, "NoteCallback", webview_callback_note, context);
 	webview_bind(w, "Aria2WebWindowCloseCallback", webview_callback_window_close, context);
 	webview_dispatch(w, on_dispatch, context);
+	webview_navigate(w, url);
+	free(url);
 	a2w->webview_ready = TRUE;
 	webview_run(w);
 	return nullptr;

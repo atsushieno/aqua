@@ -74,13 +74,13 @@ void a2wlv2_note_callback(void* context, int key, int velocity)
 }
 
 void extui_show_callback(LV2_External_UI_Widget* widget) {
-	printf("extui_show_callback!\n");
+	// FIXME: implement
 }
-void extui_hide_callback(LV2_External_UI_Widget* widget) {	
-	printf("extui_hide_callback!\n");
+void extui_hide_callback(LV2_External_UI_Widget* widget) {
+	// FIXME: implement
 }
 void extui_run_callback(LV2_External_UI_Widget* widget) {
-	printf("extui_run_callback!\n");
+	// nothing to do here...
 }
 
 LV2UI_Handle aria2web_lv2ui_instantiate(
@@ -99,6 +99,7 @@ LV2UI_Handle aria2web_lv2ui_instantiate(
 	ret->plugin_uri = plugin_uri;
 	// FIXME: do not alter bundle path. Adjust it in aria2web.h. (it does not even free memory now)
 	ret->bundle_path = strdup((std::string{bundle_path} + "/resources").c_str());
+	ret->a2w->web_local_file_path = ret->bundle_path;
 	ret->write_function = write_function;
 	ret->controller = controller;
 	ret->features = features;
