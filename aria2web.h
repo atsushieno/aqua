@@ -256,7 +256,6 @@ void webview_callback_note(const char *seq, const char *req, void *arg) {
 
 void on_dispatch(webview_t w, void* context) {
 	// FIXME: add gtk window close callback here.
-	log_debug("on_dispatch: %d\n", webview_get_window(w) != nullptr);
 }
 
 // It used to be implemented to run on a dedicated thread, which still worked as a standalone UI
