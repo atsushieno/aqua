@@ -23,7 +23,7 @@ typedef struct aria2weblv2ui_tag {
 	LV2UI_Write_Function write_function;
 	LV2UI_Controller controller;
 	const LV2_Feature *const *features;
-	int urid_atom, urid_frame_time, urid_midi_event;
+	int urid_atom, urid_frame_time, urid_midi_event, urid_atom_event_transfer;
 	LV2_External_UI_Widget extui;
 	
 	char atom_buffer[50];
@@ -39,7 +39,7 @@ char* fill_atom_message_base(aria2weblv2ui* a, LV2_Atom_Sequence* seq)
 	ev->body.type = a->urid_midi_event;
 	ev->body.size = 3;
 	seq->atom.size = sizeof(LV2_Atom_Event) + 3;
-	seq->atom.type = a->urid_atom;
+	seq->atom.type = a->urid_atom_event_transfer;
 	return msg;
 }
 
@@ -55,7 +55,7 @@ void a2wlv2_cc_callback(void* context, int cc, int value)
 	msg[1] = (char) cc;
 	msg[2] = (char) value;
 	
-	a->write_function(a->controller, ARIA2WEB_LV2_CONTROL_PORT, seq->atom.size + sizeof(LV2_Atom), LV2_ATOM__eventTransfer, a->atom_buffer);
+	a->write_function(a->controller, ARIA2WEB_LV2_CONTROL_PORT, seq->atom.size + sizeof(LV2_Atom), a->urid_atom_event_transfer, a->atom_buffer);
 }
 
 // Unlike the name implies, it is actually not that general, but more specific to sfizz...
@@ -70,7 +70,7 @@ void a2wlv2_note_callback(void* context, int key, int velocity)
 	msg[1] = (char) key;
 	msg[2] = (char) velocity;
 	
-	a->write_function(a->controller, ARIA2WEB_LV2_CONTROL_PORT, seq->atom.size + sizeof(LV2_Atom), LV2_ATOM__eventTransfer, a->atom_buffer);
+	a->write_function(a->controller, ARIA2WEB_LV2_CONTROL_PORT, seq->atom.size + sizeof(LV2_Atom), a->urid_atom_event_transfer, a->atom_buffer);
 }
 
 void extui_show_callback(LV2_External_UI_Widget* widget) {
@@ -113,6 +113,7 @@ LV2UI_Handle aria2web_lv2ui_instantiate(
 			ret->urid_atom = urid->map(urid->handle, LV2_ATOM_URI);
 			ret->urid_frame_time = urid->map(urid->handle, LV2_ATOM__frameTime);
 			ret->urid_midi_event = urid->map(urid->handle, LV2_MIDI__MidiEvent);
+			ret->urid_atom_event_transfer = urid->map(urid->handle, LV2_ATOM__eventTransfer);
 			break;
 		} else if (strcmp(f->URI, LV2_EXTERNAL_UI__Host) == 0) {
 			auto extui = &ret->extui;
