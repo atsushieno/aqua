@@ -137,8 +137,6 @@ const char* get_mime_type_from_filename(char* filename) {
 }
 
 void handle_request(struct http_request_s* request) {
-	printf("CURRENT DIRECTORY IS: %s\n", get_current_dir_name());
-
 	struct http_response_s* response = http_response_init();
 
 	struct http_string_s target = http_request_target(request);
@@ -159,7 +157,7 @@ void handle_request(struct http_request_s* request) {
 	int fd = open(filePath.c_str(), O_RDONLY);
 	free(targetPath);
 	if (fd == -1) {
-		puts("... was NOT found.");
+		log_debug("... was NOT found.");
 		http_response_status(response, 404);
 		http_respond(request, response);
 	} else {
@@ -221,7 +219,6 @@ void parse_js_two_array_items(const char* req, int* ret1, int* ret2)
 }
 
 void webview_callback_window_close(const char *seq, const char *req, void *arg) {
-	fprintf(stderr, "CLOSED\n");
 	auto a2w = (aria2web*) arg;
 	if (a2w && a2w->window_close_callback)
 		a2w->window_close_callback(a2w->window_close_callback_context);
@@ -259,7 +256,7 @@ void webview_callback_note(const char *seq, const char *req, void *arg) {
 
 void on_dispatch(webview_t w, void* context) {
 	// FIXME: add gtk window close callback here.
-	printf("on_dispatch: %d\n", webview_get_window(w) != nullptr);
+	log_debug("on_dispatch: %d\n", webview_get_window(w) != nullptr);
 }
 
 // It used to be implemented to run on a dedicated thread, which still worked as a standalone UI

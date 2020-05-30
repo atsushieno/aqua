@@ -55,7 +55,7 @@ void a2wlv2_cc_callback(void* context, int cc, int value)
 	msg[1] = (char) cc;
 	msg[2] = (char) value;
 	
-	a->write_function(a->controller, ARIA2WEB_LV2_CONTROL_PORT, seq->atom.size + sizeof(LV2_Atom), LV2_UI__floatProtocol, a->atom_buffer);
+	a->write_function(a->controller, ARIA2WEB_LV2_CONTROL_PORT, seq->atom.size + sizeof(LV2_Atom), LV2_ATOM__eventTransfer, a->atom_buffer);
 }
 
 // Unlike the name implies, it is actually not that general, but more specific to sfizz...
@@ -70,7 +70,7 @@ void a2wlv2_note_callback(void* context, int key, int velocity)
 	msg[1] = (char) key;
 	msg[2] = (char) velocity;
 	
-	a->write_function(a->controller, ARIA2WEB_LV2_CONTROL_PORT, seq->atom.size + sizeof(LV2_Atom), LV2_UI__floatProtocol, a->atom_buffer);
+	a->write_function(a->controller, ARIA2WEB_LV2_CONTROL_PORT, seq->atom.size + sizeof(LV2_Atom), LV2_ATOM__eventTransfer, a->atom_buffer);
 }
 
 void extui_show_callback(LV2_External_UI_Widget* widget) {
@@ -133,6 +133,13 @@ void aria2web_lv2ui_cleanup(LV2UI_Handle ui)
 	free(a2wlv2);
 }
 
+void aria2web_lv2ui_port_event(LV2UI_Handle ui, uint32_t port_index, uint32_t buffer_size, uint32_t format, const void *buffer)
+{
+	if (port_index == ARIA2WEB_LV2_CONTROL_PORT) {
+		// FIXME: reflect the value changes back to UI.
+	}
+}
+
 
 LV2UI_Descriptor uidesc;
 
@@ -141,7 +148,7 @@ LV2_SYMBOL_EXPORT const LV2UI_Descriptor* lv2ui_descriptor(uint32_t index)
 	uidesc.URI = "https://github.com/atsushieno/aria2web#ui";
 	uidesc.instantiate = aria2web_lv2ui_instantiate;
 	uidesc.cleanup = aria2web_lv2ui_cleanup;
-	uidesc.port_event = nullptr;
+	uidesc.port_event = aria2web_lv2ui_port_event;
 	uidesc.extension_data = nullptr;
 
 	return &uidesc;
