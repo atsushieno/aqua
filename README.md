@@ -1,5 +1,7 @@
 # aria2web README
 
+![aria2web LV2 UI in action](aria2web-lv2ui-in-action.png)
+
 `aria2web` is a simple JS+HTML page that brings SFZ [ARIA extensions](https://sfzformat.com/extensions/aria/xml_instrument_bank) XML instrument bank to Web (HTML+SVG) using [webaudio-controls](https://github.com/g200kg/webaudio-controls/). This repository contains copies of JS files from webaudio-controls project.
 
 An online demo UI is available at: https://aria2web.firebaseapp.com/
@@ -13,17 +15,23 @@ There are handful of great instruments with ARIA UI such as  [Unreal Instruments
 - [UI 1912](https://unreal-instruments.wixsite.com/unreal-instruments/1912)
 - [karoryfer-bigcat.cello](https://github.com/sfzinstruments/karoryfer-bigcat.cello)
 
+## Rationale
+
+The real value in this experimental project lies in that the entire UI is based on **complete** web technology ecosystem, not just part of it. For example, [Blueprint](https://github.com/nick-thompson/blueprint) is a great React integration for audio plugins, but still needs full backend implementation just like React Native (but for its own), which is not going to be complete. Full SVG implementation, HTML5 Canvas, WebGL etc. including full access to the DOM integration, is what we want, to achieve "any Web application authoring tool works" state of union.
+
 ## Embedded hosting
 
-aria2web is designed to be used for audio plugin UI. `aria2web-host.c` is a proof-of-concept HTTP server and WebView app that shows the program (instrument) list like a native UI using [zserge/webview](https://github.com/zserge/webview) and [jeremycw/httpserver.h](https://github.com/jeremycw/httpserver.h). So far it only logs note on/off and control changes from the UI, but you would get the basic concept on how it could be used.
+aria2web is designed to be used for audio plugin UI. `aria2web-host.c` is a proof-of-concept HTTP server and WebView app that shows the program (instrument) list like a native UI using [zserge/webview](https://github.com/zserge/webview) and [jeremycw/httpserver.h](https://github.com/jeremycw/httpserver.h). So far it only logs note on/off and control changes from the UI (they are the whole supported messages by `webaudio-controls` anyways), but you would get the basic concept on how it could be used.
 
 ## lv2 plugin UI
 
-`aria2web-lv2ui` is an UI implementation for LV2 plugins. The plan is to provide a fully-functional SFZ sampler UI using [sfztools/sfizz](https://github.com/sfztools/sfizz/). Though unlike sfizz itself, aria2web [does not support run-time UI loading](https://github.com/atsushieno/aria2web/issues/3) (the HTML pages must be pre-generated) yet.
+`aria2web-lv2ui` is the LV2 plugin UI implementation. It is to provide a fully-functional SFZ sampler UI using [sfztools/sfizz](https://github.com/sfztools/sfizz/). Though unlike sfizz itself, aria2web [does not support run-time UI loading](https://github.com/atsushieno/aria2web/issues/3) (the HTML pages must be pre-generated) yet.
 
 The actual sfizz integration is ongoing. We use a sfizz submodule, with some uncommitted changes to the codebase, which replaces most of the sfizz URI with aria2web: https://gist.github.com/atsushieno/37d5686d6bad5ee04d85d2b45258e0c9 . (It's an ugly hack, but we should use different name and URI to not conflict with sfizz which may be locally installed.)
 
-To build native hosting stuff, you will have to install sfizz dependencies such as libjack-dev and libsndfile-dev, then run `./build.sh`.
+To build native hosting stuff, you will have to install sfizz dependencies such as libjack-dev and libsndfile-dev, then run `./build.sh`. As the build result, there will be `sfizz-aria2web/dist/lib/lv2/sfizz.lv2`
+
+Also, as the current implementation limitation, only zrythm is the target host, until we [support process isolation](https://github.com/atsushieno/aria2web/issues/4).
 
 ## Licenses
 
