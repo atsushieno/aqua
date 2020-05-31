@@ -81,14 +81,17 @@ void a2wlv2_note_callback(void* context, int key, int velocity)
 
 void extui_show_callback(LV2_External_UI_Widget* widget) {
 	// FIXME: implement
+	puts ("!!!!! EXTUI_SHOW_CALLBACK");
 }
 void extui_hide_callback(LV2_External_UI_Widget* widget) {
 	// FIXME: implement
+	puts ("!!!!! EXTUI_HIDE_CALLBACK");
 }
 void extui_run_callback(LV2_External_UI_Widget* widget) {
 	// nothing to do here...
 }
 
+#if !IN_PROCESS_WEBVIEW
 void* runloop_aria2web_host(void* context) {
 	auto aui = (aria2weblv2ui*) context;
 	std::string cmd = std::string{} + aui->bundle_path + "/aria2web-host --plugin";
@@ -117,6 +120,7 @@ void* runloop_aria2web_host(void* context) {
 
 	return nullptr;
 }
+#endif
 
 LV2UI_Handle aria2web_lv2ui_instantiate(
 	const LV2UI_Descriptor *descriptor,
@@ -172,13 +176,13 @@ LV2UI_Handle aria2web_lv2ui_instantiate(
 
 void aria2web_lv2ui_cleanup(LV2UI_Handle ui)
 {
-#if IN_PROCESS_WEBVIEW
 	auto a2wlv2 = (aria2weblv2ui*) ui;
+#if IN_PROCESS_WEBVIEW
 	aria2web_stop(a2wlv2->a2w);
-	free(a2wlv2);
 #else
-	assert(0); // implement!
+	a2wlv2->a2w_process->kill();
 #endif
+	free(a2wlv2);
 }
 
 void aria2web_lv2ui_port_event(LV2UI_Handle ui, uint32_t port_index, uint32_t buffer_size, uint32_t format, const void *buffer)

@@ -31,9 +31,9 @@ aria2web is designed to be used for audio plugin UI. `aria2web-host.c` is a proo
 
 The actual sfizz integration is ongoing. We use a sfizz submodule, with some uncommitted changes to the codebase, which replaces most of the sfizz URI with aria2web: https://gist.github.com/atsushieno/37d5686d6bad5ee04d85d2b45258e0c9 . (It's an ugly hack, but we should use different name and URI to not conflict with sfizz which may be locally installed.)
 
-To build native hosting stuff, you will have to install sfizz dependencies such as libjack-dev and libsndfile-dev, then run `./build.sh`. As the build result, there will be `sfizz-aria2web/dist/lib/lv2/sfizz.lv2`
+To build native hosting stuff, you will have to install sfizz dependencies such as libjack-dev and libsndfile-dev, then run `./build.sh`. As the build result, there will be `sfizz-aria2web/dist/lib/lv2/sfizz.lv2` directory.
 
-The plugin UI is neither X11, Gtk2/3 or Qt4/5 but uses KXStudio external UI namespace and runs the actual UI in an isolated process. It runs `aria2web-host` which is WebKitGtk, so you'll need it locally installed. The process isolation and management is [still an ongoing work](https://github.com/atsushieno/aria2web/issues/4), but the UI shows up on zrythm and qtractor.
+The plugin UI is neither X11, Gtk2/3 or Qt4/5 but is [KXStudio external UI namespace](https://kx.studio/ns/lv2ext/external-ui). The actual UI is `aria2web-host` running on its own isolated process. Since it uses WebKitGtk, you'll need it locally installed. The process isolation and management is [still an ongoing work](https://github.com/atsushieno/aria2web/issues/4), but the UI shows up on zrythm and qtractor.
 
 ## Debugging
 
