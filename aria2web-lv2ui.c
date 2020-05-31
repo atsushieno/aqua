@@ -1,3 +1,4 @@
+#include <spawn.h>
 #include <vector>
 #include <lv2/lv2plug.in/ns/lv2core/lv2.h>
 #include <lv2/lv2plug.in/ns/extensions/ui/ui.h>
@@ -17,7 +18,11 @@ extern "C" {
 #endif
 
 typedef struct aria2weblv2ui_tag {
+#if IN_PROCESS_WEBVIEW
 	aria2web* a2w;
+#else
+	pthread_t ui_launcher_thread;
+#endif
 	const char *plugin_uri;
 	const char *bundle_path;
 	LV2UI_Write_Function write_function;
@@ -25,7 +30,7 @@ typedef struct aria2weblv2ui_tag {
 	const LV2_Feature *const *features;
 	int urid_atom, urid_frame_time, urid_midi_event, urid_atom_event_transfer;
 	LV2_External_UI_Widget extui;
-	
+
 	char atom_buffer[50];
 } aria2weblv2ui;
 
@@ -83,6 +88,70 @@ void extui_run_callback(LV2_External_UI_Widget* widget) {
 	// nothing to do here...
 }
 
+void* runloop_aria2web_host(void* context) {
+	auto aui = (aria2weblv2ui*) context;
+
+	std::string cmd = std::string{} + aui->bundle_path + "/aria2web-host";
+	char *const args[3] = {cmd.c_str(), "--plugin", nullptr};
+	char input[1024];
+
+	int outPipes[2];
+	int errPipes[2];
+	posix_spawn_file_actions_t action;
+
+	assert(!pipe(outPipes) && !pipe(errPipes));
+
+	posix_spawn_file_actions_init(&action);
+	posix_spawn_file_actions_addclose(&action, outPipes[0]);
+	posix_spawn_file_actions_addclose(&action, errPipes[0]);
+	posix_spawn_file_actions_adddup2(&action, outPipes[1], 1);
+	posix_spawn_file_actions_adddup2(&action, errPipes[1], 2);
+
+	posix_spawn_file_actions_addclose(&action, outPipes[1]);
+	posix_spawn_file_actions_addclose(&action, errPipes[1]);
+
+	pid_t pid;
+	int spawn_ret = posix_spawnp(&pid, cmd.c_str(), &action, nullptr, (char* const*) &args, nullptr);
+	if (pid == 0) {
+		int x = POSIX_SPAWN_SETPGROUP;
+		printf("Failed to launch %s: error code %d\n", cmd.c_str(), spawn_ret);
+		return nullptr;
+	}
+
+	while(1) {
+		int index = 0;
+		input[1023] = '\0';
+		while(1) {
+			int size = read(outPipes[0], input + index, 1024 - index);
+			if (index + size >= 1023)
+				break;
+			index += size;
+			if (input[index] == '\n') {
+				input[index + 1] = '\0';
+				break;
+			}
+		}
+		int note, cc, value;
+		switch (input[0]) {
+		case 'N':
+			sscanf(input + 1, "#%x,#%x", &note, &value);
+			a2wlv2_note_callback(aui, note, value);
+			break;
+		case 'C':
+			sscanf(input, "#%x,#%x", &cc, &value);
+			a2wlv2_cc_callback(aui, cc, value);
+			break;
+		case'Q':
+			// terminate
+			return nullptr;
+		default:
+			printf("Unrecognized command sent by aria2web-host: %s\n", input);
+		}
+	}
+
+	return nullptr;
+}
+
 LV2UI_Handle aria2web_lv2ui_instantiate(
 	const LV2UI_Descriptor *descriptor,
 	const char *plugin_uri,
@@ -93,18 +162,17 @@ LV2UI_Handle aria2web_lv2ui_instantiate(
 	const LV2_Feature *const *features)
 {
 	auto ret = (aria2weblv2ui*) calloc(sizeof(aria2weblv2ui), 1);
-	ret->a2w = aria2web_create(bundle_path);
-	aria2web_set_control_change_callback(ret->a2w, a2wlv2_cc_callback, ret);
-	aria2web_set_note_callback(ret->a2w, a2wlv2_note_callback, ret);
 	ret->plugin_uri = plugin_uri;
 	// FIXME: do not alter bundle path. Adjust it in aria2web.h. (it does not even free memory now)
 	ret->bundle_path = strdup((std::string{bundle_path} + "/resources").c_str());
-	ret->a2w->web_local_file_path = ret->bundle_path;
 	ret->write_function = write_function;
 	ret->controller = controller;
 	ret->features = features;
 
-	void* parentWindow = nullptr;
+	auto extui = &ret->extui;
+	extui->show = extui_show_callback;
+	extui->hide = extui_hide_callback;
+	extui->run = extui_run_callback;
 
 	for (int i = 0; features[i]; i++) {
 		auto f = features[i];
@@ -115,29 +183,43 @@ LV2UI_Handle aria2web_lv2ui_instantiate(
 			ret->urid_midi_event = urid->map(urid->handle, LV2_MIDI__MidiEvent);
 			ret->urid_atom_event_transfer = urid->map(urid->handle, LV2_ATOM__eventTransfer);
 			break;
-		} else if (strcmp(f->URI, LV2_EXTERNAL_UI__Host) == 0) {
-			auto extui = &ret->extui;
-			extui->show = extui_show_callback;
-			extui->hide = extui_hide_callback;
-			extui->run = extui_run_callback;
 		}
 	}
+
+#if IN_PROCESS_WEBVIEW
+	ret->a2w = aria2web_create(bundle_path);
+	aria2web_set_control_change_callback(ret->a2w, a2wlv2_cc_callback, ret);
+	aria2web_set_note_callback(ret->a2w, a2wlv2_note_callback, ret);
+	ret->a2w->web_local_file_path = ret->bundle_path;
+
 	aria2web_start(ret->a2w, nullptr);
+#else
+	pthread_t thread;
+	pthread_create(&thread, nullptr, runloop_aria2web_host, ret);
+	pthread_setname_np(thread, "aria2web_lv2ui_host_launcher");
+	ret->ui_launcher_thread = thread;
+#endif
+
 	*widget = &ret->extui;
 	return ret;
 }
 
 void aria2web_lv2ui_cleanup(LV2UI_Handle ui)
 {
+#if IN_PROCESS_WEBVIEW
 	auto a2wlv2 = (aria2weblv2ui*) ui;
 	aria2web_stop(a2wlv2->a2w);
 	free(a2wlv2);
+#else
+	assert(0); // implement!
+#endif
 }
 
 void aria2web_lv2ui_port_event(LV2UI_Handle ui, uint32_t port_index, uint32_t buffer_size, uint32_t format, const void *buffer)
 {
 	if (port_index == ARIA2WEB_LV2_CONTROL_PORT) {
 		// FIXME: reflect the value changes back to UI.
+		printf("port event received. buffer size: %d bytes\n", buffer_size);
 	}
 }
 

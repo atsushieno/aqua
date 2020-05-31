@@ -48,7 +48,10 @@ int main(int argc, char** argv) {
 	aria2web_set_control_change_callback(a2w, sample_cc_callback, nullptr);
 	aria2web_set_note_callback(a2w, sample_note_callback, nullptr);
 	aria2web_set_window_close_callback(a2w, sample_window_close_callback, nullptr);
-	aria2web_start(a2w);
+	puts("#aria2web-host started");
+
+	pthread_t a2w_thread;
+	pthread_create(&a2w_thread, nullptr, aria2web_start, a2w);
 	if (standalone)
 		puts("Hit [CR] to stop");
 	getchar();
