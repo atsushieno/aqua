@@ -5,26 +5,31 @@
 bool standalone{TRUE};
 
 /*
-  The standalone app is only for debugging.
+  The standalone app is used for debugging as well as the UI remote process for LV2 UI.
 
   With --plugin argument, it runs as a plugin UI and prints 'C' for CC or 'N' for note on/off
   using hexadecimal representation prefixed as in "#xx,#xx\n" format.
+  It must call fflush(stdout) every time so that the plugin UI module can process an entire line.
  */
 
 void sample_cc_callback(void* context, int cc, int value)
 {
 	if (standalone)
 		printf("sample CC callback: CC#%x = %d\n", cc, value);
-	else
+	else {
 		printf("C#%x,#%x\n", cc, value);
+		fflush(stdout);
+	}
 }
 
 void sample_note_callback(void* context, int key, int velocity)
 {
 	if (standalone)
 		printf("sample Note callback: key %d velocity %d\n", key, velocity);
-	else
+	else {
 		printf("N#%x,#%x\n", key, velocity);
+		fflush(stdout);
+	}
 }
 
 void sample_window_close_callback(void* context)
@@ -40,15 +45,23 @@ int WINAPI WinMain(HINSTANCE hInt, HINSTANCE hPrevInst, LPSTR lpCmdLine,
 #else
 int main(int argc, char** argv) {
 #endif
+
 	for (int i = 1; i < argc; i++)
-		if(strcmp(argv[i], "--plugin") == 0)
+		if (strcmp(argv[i], "--plugin") == 0)
 			standalone = FALSE;
 
-	auto a2w = aria2web_create(get_current_dir_name());
+	char* rpath = realpath(argv[0], nullptr);
+	*strrchr(rpath, '/') = '\0';
+	std::string path{rpath};
+	free(rpath);
+
+	printf("#aria2web-host started: current directory is %s \n", path.c_str());
+	fflush(stdout);
+
+	auto a2w = aria2web_create(path.c_str());
 	aria2web_set_control_change_callback(a2w, sample_cc_callback, nullptr);
 	aria2web_set_note_callback(a2w, sample_note_callback, nullptr);
 	aria2web_set_window_close_callback(a2w, sample_window_close_callback, nullptr);
-	puts("#aria2web-host started");
 
 	pthread_t a2w_thread;
 	pthread_create(&a2w_thread, nullptr, aria2web_start, a2w);

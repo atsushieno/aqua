@@ -33,7 +33,7 @@ The actual sfizz integration is ongoing. We use a sfizz submodule, with some unc
 
 To build native hosting stuff, you will have to install sfizz dependencies such as libjack-dev and libsndfile-dev, then run `./build.sh`. As the build result, there will be `sfizz-aria2web/dist/lib/lv2/sfizz.lv2`
 
-Also, as a current implementation limitation, only zrythm is the target host, until we [support process isolation](https://github.com/atsushieno/aria2web/issues/4).
+The plugin UI is neither X11, Gtk2/3 or Qt4/5 but uses KXStudio external UI namespace and runs the actual UI in an isolated process. It runs `aria2web-host` which is WebKitGtk, so you'll need it locally installed. The process isolation and management is [still an ongoing work](https://github.com/atsushieno/aria2web/issues/4), but the UI shows up on zrythm and qtractor.
 
 ## Debugging
 
@@ -46,7 +46,7 @@ Debugging the LV2 UI plugin is not intuitive. For @atsushieno, the debuggee is `
 
 - My code (`aria2web*`) is available under the MIT License.
 - webaudio-controls, webcomponents-lite, and Vue.js are distributed by each developers under their respective licenses (Apache, BSD-like, MIT).
-- `httpserver.h` and `webview` are available under the MIT license.
+- `httpserver.h`, `webview`, and `tiny-process-library` are available under the MIT license.
 - sfizz is available under the BSD license.
 - UI METAL GTX, UI Standard Guitar, and UI 1912 are freely available like public domain (no credits required: `＊ライセンスについて ・ライセンスフリーです ・クレジット表記は不要です`).
 - karoryfer-bigcat.cello is under CC-BY 4.0 License.

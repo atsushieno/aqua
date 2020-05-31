@@ -1,4 +1,3 @@
-#include <spawn.h>
 #include <vector>
 #include <lv2/lv2plug.in/ns/lv2core/lv2.h>
 #include <lv2/lv2plug.in/ns/extensions/ui/ui.h>
@@ -9,6 +8,7 @@
 #define ARIA2WEB_IMPL
 #include "lv2_external_ui.h"
 #include "aria2web.h"
+#include "process.hpp"
 
 extern "C" {
 
@@ -22,6 +22,7 @@ typedef struct aria2weblv2ui_tag {
 	aria2web* a2w;
 #else
 	pthread_t ui_launcher_thread;
+	std::unique_ptr<TinyProcessLib::Process> a2w_process;
 #endif
 	const char *plugin_uri;
 	const char *bundle_path;
@@ -90,64 +91,29 @@ void extui_run_callback(LV2_External_UI_Widget* widget) {
 
 void* runloop_aria2web_host(void* context) {
 	auto aui = (aria2weblv2ui*) context;
-
-	std::string cmd = std::string{} + aui->bundle_path + "/aria2web-host";
-	char *const args[3] = {cmd.c_str(), "--plugin", nullptr};
-	char input[1024];
-
-	int outPipes[2];
-	int errPipes[2];
-	posix_spawn_file_actions_t action;
-
-	assert(!pipe(outPipes) && !pipe(errPipes));
-
-	posix_spawn_file_actions_init(&action);
-	posix_spawn_file_actions_addclose(&action, outPipes[0]);
-	posix_spawn_file_actions_addclose(&action, errPipes[0]);
-	posix_spawn_file_actions_adddup2(&action, outPipes[1], 1);
-	posix_spawn_file_actions_adddup2(&action, errPipes[1], 2);
-
-	posix_spawn_file_actions_addclose(&action, outPipes[1]);
-	posix_spawn_file_actions_addclose(&action, errPipes[1]);
-
-	pid_t pid;
-	int spawn_ret = posix_spawnp(&pid, cmd.c_str(), &action, nullptr, (char* const*) &args, nullptr);
-	if (pid == 0) {
-		int x = POSIX_SPAWN_SETPGROUP;
-		printf("Failed to launch %s: error code %d\n", cmd.c_str(), spawn_ret);
-		return nullptr;
-	}
-
-	while(1) {
-		int index = 0;
-		input[1023] = '\0';
-		while(1) {
-			int size = read(outPipes[0], input + index, 1024 - index);
-			if (index + size >= 1023)
+	std::string cmd = std::string{} + aui->bundle_path + "/aria2web-host --plugin";
+	aui->a2w_process.reset(new TinyProcessLib::Process(cmd, "", [&aui](const char* bytes, size_t n) {
+		if (n <= 0)
+			return;
+		int v1, v2;
+		switch (bytes[0]) {
+			case 'N':
+				sscanf(bytes + 1, "#%x,#%x", &v1, &v2);
+				printf("NOTE EVENT RECEIVED: %d %d\n", v1, v2);
+				a2wlv2_note_callback(aui, v1, v2);
 				break;
-			index += size;
-			if (input[index] == '\n') {
-				input[index + 1] = '\0';
+			case 'C':
+				sscanf(bytes + 1, "#%x,#%x", &v1, &v2);
+				printf("CC EVENT RECEIVED: %d %d\n", v1, v2);
+				a2wlv2_cc_callback(aui, v1, v2);
 				break;
-			}
+			case'Q':
+				// terminate
+				return aui->a2w_process->kill();
+			default:
+				printf("Unrecognized command sent by aria2web-host: %s\n", bytes);
 		}
-		int note, cc, value;
-		switch (input[0]) {
-		case 'N':
-			sscanf(input + 1, "#%x,#%x", &note, &value);
-			a2wlv2_note_callback(aui, note, value);
-			break;
-		case 'C':
-			sscanf(input, "#%x,#%x", &cc, &value);
-			a2wlv2_cc_callback(aui, cc, value);
-			break;
-		case'Q':
-			// terminate
-			return nullptr;
-		default:
-			printf("Unrecognized command sent by aria2web-host: %s\n", input);
-		}
-	}
+	}, nullptr, true));
 
 	return nullptr;
 }
