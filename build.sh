@@ -14,6 +14,13 @@ g++ -g -fpermissive -I external/webview/ -I external/httpserver.h/ \
 	-o aria2web-lv2ui.so -shared -fPIC -Wl,--no-undefined \
 	|| exit 1
 
+if [ ! -f a2w-sfizz.stamp ] ; then
+  cd external/sfizz ;
+  patch -i ../../sfizz-to-a2w.patch -p1 ;
+  cd ../.. ;
+  touch a2w-sfizz.stamp ;
+fi
+
 if [ ! -d sfizz-aria2web/dist ] ; then
   echo "building sfizz..." ;
   mkdir sfizz-aria2web ;
@@ -36,5 +43,6 @@ echo "Copying resources..."
 cp aria2web-host $DSTRES
 cp index.html $DSTRES
 cp -R ui-* $DSTRES
+cp -R karoryfer-* $DSTRES
 cp *.js $DSTRES
 echo "build successfully completed."

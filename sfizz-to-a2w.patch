@@ -1,0 +1,28 @@
+diff --git a/lv2/sfizz.c b/lv2/sfizz.c
+index 67501d85..5b8a99fb 100644
+--- a/lv2/sfizz.c
++++ b/lv2/sfizz.c
+@@ -58,15 +58,15 @@
+ #include "atomic_compat.h"
+ 
+ #define DEFAULT_SFZ_FILE "/home/paul/Documents/AVL_Percussions/AVL_Drumkits_Percussion-1.0-Alt.sfz"
+-#define SFIZZ_URI "http://sfztools.github.io/sfizz"
++#define SFIZZ_URI "https://github.com/atsushieno/aria2web"
+ #define SFIZZ_PREFIX SFIZZ_URI "#"
+-#define SFIZZ__sfzFile "http://sfztools.github.io/sfizz:sfzfile"
+-#define SFIZZ__numVoices "http://sfztools.github.io/sfizz:numvoices"
+-#define SFIZZ__preloadSize "http://sfztools.github.io/sfizz:preload_size"
+-#define SFIZZ__oversampling "http://sfztools.github.io/sfizz:oversampling"
++#define SFIZZ__sfzFile "https://github.com/atsushieno/aria2web:sfzfile"
++#define SFIZZ__numVoices "https://github.com/atsushieno/aria2web:numvoices"
++#define SFIZZ__preloadSize "https://github.com/atsushieno/aria2web:preload_size"
++#define SFIZZ__oversampling "https://github.com/atsushieno/aria2web:oversampling"
+ // These ones are just for the worker
+-#define SFIZZ__logStatus "http://sfztools.github.io/sfizz:log_status"
+-#define SFIZZ__checkModification "http://sfztools.github.io/sfizz:check_modification"
++#define SFIZZ__logStatus "https://github.com/atsushieno/aria2web:log_status"
++#define SFIZZ__checkModification "https://github.com/atsushieno/aria2web:check_modification"
+ 
+ #define CHANNEL_MASK 0x0F
+ #define MIDI_CHANNEL(byte) (byte & CHANNEL_MASK)
+
