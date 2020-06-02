@@ -88,25 +88,22 @@ void a2wlv2_note_callback(void* context, int key, int velocity)
 }
 
 void extui_show_callback(LV2_External_UI_Widget* widget) {
-	// FIXME: implement
 	auto a2w = (aria2weblv2ui*) (void*) widget;
-	if (a2w->is_visible_now)
-		return;
+#if IN_PROCESS_WEBVIEW
+	// FIXME: implement
 	printf ("!!!!! EXTUI_SHOW_CALLBACK %s\n", a2w->plugin_uri);
-#if !IN_PROCESS_WEBVIEW
-	a2w->a2w_process->write("show");
-	printf ("!!!!! show instruction sent\n");
+#else
+	a2w->a2w_process->write("show\n");
 #endif
 }
 
 void extui_hide_callback(LV2_External_UI_Widget* widget) {
-	// FIXME: implement
 	auto a2w = (aria2weblv2ui*) (void*) widget;
-	if (!a2w->is_visible_now)
-		return;
+#if IN_PROCESS_WEBVIEW
+	// FIXME: implement
 	printf ("!!!!! EXTUI_HIDE_CALLBACK %s\n", a2w->plugin_uri);
-#if !IN_PROCESS_WEBVIEW
-	a2w->a2w_process->write("hide");
+#else
+	a2w->a2w_process->write("hide\n");
 #endif
 }
 
@@ -115,7 +112,8 @@ void extui_run_callback(LV2_External_UI_Widget* widget) {
 }
 
 #if !IN_PROCESS_WEBVIEW
-void* do_runloop_aria2web_host(void* context) {
+void* runloop_aria2web_host(void* context)
+{
 	auto aui = (aria2weblv2ui*) context;
 	std::string cmd = std::string{} + aui->bundle_path + "/aria2web-host --plugin";
 	aui->a2w_process.reset(new TinyProcessLib::Process(cmd, "", [&aui](const char* bytes, size_t n) {
@@ -142,14 +140,6 @@ void* do_runloop_aria2web_host(void* context) {
 	}, nullptr, true));
 
 	return nullptr;
-}
-
-void* runloop_aria2web_host(void* context) {
-	try {
-		return do_runloop_aria2web_host(context);
-	} catch (...) {
-		puts("aria2web_host thread crashed");
-	};
 }
 
 #endif

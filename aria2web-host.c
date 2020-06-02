@@ -65,6 +65,8 @@ int main(int argc, char** argv) {
 
 	pthread_t a2w_thread;
 	pthread_create(&a2w_thread, nullptr, aria2web_start, a2w);
+	while (!a2w->webview_ready)
+		usleep(1000);
 	if (standalone)
 		puts("Type \"quit\" (all in lowercase) to stop");
 	char input[1024];
@@ -73,18 +75,19 @@ int main(int argc, char** argv) {
 			puts("#aria2web-host: error - could not read input. aborting.");
 			break;
 		}
-		if (input[0] != '\0') {
-			input[strlen(input) - 1] = '\0';
-			if (input[0] == '\r')
-				input[strlen(input) - 1] = '\0';
-		}
-		printf("#USER INPUT: %s\n", input);
+		int len = strlen(input);
+		if (len > 0 && input[len - 1] == '\n')
+			input[--len] = '\0';
+		if (len > 0 && input[len - 1] == '\r')
+			input[--len] = '\0';
 		if (strcmp(input, "quit") == 0)
 			break;
 		else if (strcmp(input, "hide") == 0)
 			aria2web_hide_window(a2w);
 		else if (strcmp(input, "show") == 0)
 			aria2web_show_window(a2w);
+		else
+			printf("#aria2web-host: unknown user input (after removing CR/LF): %s\n", input);
 	}
 	puts("#aria2web-host: stopped");
 	aria2web_stop(a2w);
