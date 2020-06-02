@@ -200,6 +200,7 @@ LV2UI_Handle aria2web_lv2ui_instantiate(
 
 void aria2web_lv2ui_cleanup(LV2UI_Handle ui)
 {
+	puts("aria2web_lv2ui_cleanup");
 	auto a2wlv2 = (aria2weblv2ui*) ui;
 #if IN_PROCESS_WEBVIEW
 	aria2web_stop(a2wlv2->a2w);
