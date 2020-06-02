@@ -67,6 +67,7 @@ int main(int argc, char** argv) {
 	pthread_create(&a2w_thread, nullptr, aria2web_start, a2w);
 	while (!a2w->webview_ready)
 		usleep(1000);
+	gtk_window_set_deletable(webview_get_window((webview_t) a2w->webview), FALSE);
 	if (standalone)
 		puts("Type \"quit\" (all in lowercase) to stop");
 	char input[1024];

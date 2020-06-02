@@ -131,9 +131,6 @@ void* runloop_aria2web_host(void* context)
 				printf("CC EVENT RECEIVED: %d %d\n", v1, v2);
 				a2wlv2_cc_callback(aui, v1, v2);
 				break;
-			case'Q':
-				// terminate
-				return aui->a2w_process->kill();
 			default:
 				printf("Unrecognized command sent by aria2web-host: %s\n", bytes);
 		}
@@ -201,13 +198,14 @@ LV2UI_Handle aria2web_lv2ui_instantiate(
 void aria2web_lv2ui_cleanup(LV2UI_Handle ui)
 {
 	puts("aria2web_lv2ui_cleanup");
-	auto a2wlv2 = (aria2weblv2ui*) ui;
+	auto a2w = (aria2weblv2ui*) ui;
 #if IN_PROCESS_WEBVIEW
 	aria2web_stop(a2wlv2->a2w);
 #else
-	a2wlv2->a2w_process->kill();
+	a2w->a2w_process->kill();
+	a2w->a2w_process->write("quit\n");
 #endif
-	free(a2wlv2);
+	free(a2w);
 }
 
 void aria2web_lv2ui_port_event(LV2UI_Handle ui, uint32_t port_index, uint32_t buffer_size, uint32_t format, const void *buffer)
