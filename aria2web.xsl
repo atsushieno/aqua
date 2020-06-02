@@ -38,7 +38,7 @@
   <xsl:template match="Knob">
 	<webaudio-knob id="knob-{@param}" a2w-control="{@param}"
 		src="{@image}" style="position:absolute; left:{@x}px; top:{@y}px" 
-		value="0" max="{@frames - 1}" step="1" sprites="{@frames - 1}" tooltip="%d" diameter="-1">
+		value="0" max="{@frames - 1}" step="1" sprites="{@frames - 1}" tooltip="%d">
 	<xsl:text> </xsl:text>
 	</webaudio-knob>
   </xsl:template>
@@ -59,7 +59,7 @@
 
   <xsl:template match="OnOffButton">
 	<webaudio-switch id="switch-{@param}" a2w-control="{@param}"
-		src="{@image}" style="position:absolute; left:{@x}px; top:{@y}px" diameter="-1">
+		src="{@image}" style="position:absolute; left:{@x}px; top:{@y}px">
 	<xsl:text> </xsl:text>
 	</webaudio-switch>
   </xsl:template>
