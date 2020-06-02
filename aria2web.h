@@ -69,7 +69,7 @@ typedef struct aria2web_tag {
 		tm.tv_sec = 0;
 		tm.tv_nsec = 1000;
 		while (!http_server_started)
-			nanosleep(&tm, NULL);
+			usleep(1000);
 		parent_window = parentWindow;
 		a2w_run_webview_loop(this);
 	}
@@ -181,6 +181,16 @@ void* a2w_run_http_server(void* context) {
 	a2w->http_server_started = TRUE;
 	http_server_listen(server);
 	return nullptr;
+}
+
+void aria2web_show_window(aria2web* a2w)
+{
+	gtk_widget_show(webview_get_window((webview_t) a2w->webview));
+}
+
+void aria2web_hide_window(aria2web* a2w)
+{
+	gtk_widget_hide(webview_get_window((webview_t) a2w->webview));
 }
 
 void aria2web_set_control_change_callback(aria2web* a2w, aria2web_control_change_callback callback, void* callbackContext)

@@ -35,6 +35,8 @@ To build native hosting stuff, you will have to install sfizz dependencies such 
 
 The plugin UI is neither X11, Gtk2/3 or Qt4/5 but is [KXStudio external UI namespace](https://kx.studio/ns/lv2ext/external-ui). The actual UI is `aria2web-host` running on its own isolated process. Since it uses WebKitGtk, you'll need it locally installed. The process isolation and management is [still an ongoing work](https://github.com/atsushieno/aria2web/issues/4), but the UI shows up on zrythm and qtractor.
 
+The inter-process messaging is done by simple and stupid pipes, with lots of help by [eidheim/tiny-process-library](https://gitlab.com/eidheim/tiny-process-library/).
+
 ## Debugging
 
 Debugging HTML parts is easy; you can just use any HTTP server e.g. `npx http-server`, open `index.html` from any browser, and use its debugging console. (You cannot open the page as in `file:` URL because the app needs access to local resources which is not allowed for the scheme.)

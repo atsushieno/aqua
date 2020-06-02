@@ -18,7 +18,15 @@ extern "C" {
 #endif
 
 typedef struct aria2weblv2ui_tag {
-#if IN_PROCESS_WEBVIEW
+	// This is tricky, but do NOT move this member from TOP of this struct, as
+	// this plugin implementation makes use of the fact that the LV2_External_UI_Widget* also
+	// points to the address of this containing `aria2weblv2ui` struct.
+	// It is due to the fact that LV2_External_UI_Widget is not designed well and lacks
+	// "context" parameter to be passed to its callbacks and therefore we have no idea
+	// "which" UI instance to manipulate.
+	LV2_External_UI_Widget extui;
+
+	#if IN_PROCESS_WEBVIEW
 	aria2web* a2w;
 #else
 	pthread_t ui_launcher_thread;
@@ -30,7 +38,7 @@ typedef struct aria2weblv2ui_tag {
 	LV2UI_Controller controller;
 	const LV2_Feature *const *features;
 	int urid_atom, urid_frame_time, urid_midi_event, urid_atom_event_transfer;
-	LV2_External_UI_Widget extui;
+	bool is_visible_now{false};
 
 	char atom_buffer[50];
 } aria2weblv2ui;
@@ -81,18 +89,33 @@ void a2wlv2_note_callback(void* context, int key, int velocity)
 
 void extui_show_callback(LV2_External_UI_Widget* widget) {
 	// FIXME: implement
-	puts ("!!!!! EXTUI_SHOW_CALLBACK");
+	auto a2w = (aria2weblv2ui*) (void*) widget;
+	if (a2w->is_visible_now)
+		return;
+	printf ("!!!!! EXTUI_SHOW_CALLBACK %s\n", a2w->plugin_uri);
+#if !IN_PROCESS_WEBVIEW
+	a2w->a2w_process->write("show");
+	printf ("!!!!! show instruction sent\n");
+#endif
 }
+
 void extui_hide_callback(LV2_External_UI_Widget* widget) {
 	// FIXME: implement
-	puts ("!!!!! EXTUI_HIDE_CALLBACK");
+	auto a2w = (aria2weblv2ui*) (void*) widget;
+	if (!a2w->is_visible_now)
+		return;
+	printf ("!!!!! EXTUI_HIDE_CALLBACK %s\n", a2w->plugin_uri);
+#if !IN_PROCESS_WEBVIEW
+	a2w->a2w_process->write("hide");
+#endif
 }
+
 void extui_run_callback(LV2_External_UI_Widget* widget) {
 	// nothing to do here...
 }
 
 #if !IN_PROCESS_WEBVIEW
-void* runloop_aria2web_host(void* context) {
+void* do_runloop_aria2web_host(void* context) {
 	auto aui = (aria2weblv2ui*) context;
 	std::string cmd = std::string{} + aui->bundle_path + "/aria2web-host --plugin";
 	aui->a2w_process.reset(new TinyProcessLib::Process(cmd, "", [&aui](const char* bytes, size_t n) {
@@ -120,6 +143,15 @@ void* runloop_aria2web_host(void* context) {
 
 	return nullptr;
 }
+
+void* runloop_aria2web_host(void* context) {
+	try {
+		return do_runloop_aria2web_host(context);
+	} catch (...) {
+		puts("aria2web_host thread crashed");
+	};
+}
+
 #endif
 
 LV2UI_Handle aria2web_lv2ui_instantiate(
@@ -131,7 +163,7 @@ LV2UI_Handle aria2web_lv2ui_instantiate(
 	LV2UI_Widget *widget,
 	const LV2_Feature *const *features)
 {
-	auto ret = (aria2weblv2ui*) calloc(sizeof(aria2weblv2ui), 1);
+	auto ret = new aria2weblv2ui();
 	ret->plugin_uri = plugin_uri;
 	// FIXME: do not alter bundle path. Adjust it in aria2web.h. (it does not even free memory now)
 	ret->bundle_path = strdup((std::string{bundle_path} + "/resources").c_str());
@@ -168,6 +200,8 @@ LV2UI_Handle aria2web_lv2ui_instantiate(
 	pthread_create(&thread, nullptr, runloop_aria2web_host, ret);
 	pthread_setname_np(thread, "aria2web_lv2ui_host_launcher");
 	ret->ui_launcher_thread = thread;
+	while (ret->a2w_process.get() == nullptr)
+		usleep(1000);
 #endif
 
 	*widget = &ret->extui;
@@ -193,6 +227,33 @@ void aria2web_lv2ui_port_event(LV2UI_Handle ui, uint32_t port_index, uint32_t bu
 	}
 }
 
+LV2UI_Show_Interface aria2weblv2ui_show_interface;
+
+int aria2web_lv2ui_showinterface_show(LV2UI_Handle ui)
+{
+	// FIXME: implement (but zrythm never calls it...?)
+	auto a2w = (aria2weblv2ui*) (void*) ui;
+	printf ("!!!!! LV2UI_Show_Interface: show %s\n", a2w->plugin_uri);
+}
+
+int aria2web_lv2ui_showinterface_hide(LV2UI_Handle ui)
+{
+	// FIXME: implement (but zrythm never calls it...?)
+	auto a2w = (aria2weblv2ui*) (void*) ui;
+	printf ("!!!!! LV2UI_Show_Interface: hide %s\n", a2w->plugin_uri);
+}
+
+void* aria2web_lv2ui_extension_data(const char *uri)
+{
+	printf ("!!!!! aria2web_lv2ui_extension_data: %s\n", uri);
+	// zrythm never calls it...?
+	if (strcmp(uri, LV2_UI__showInterface) == 0) {
+		aria2weblv2ui_show_interface.show = aria2web_lv2ui_showinterface_show;
+		aria2weblv2ui_show_interface.hide = aria2web_lv2ui_showinterface_hide;
+		return &aria2weblv2ui_show_interface;
+	}
+	return nullptr;
+}
 
 LV2UI_Descriptor uidesc;
 
@@ -202,7 +263,7 @@ LV2_SYMBOL_EXPORT const LV2UI_Descriptor* lv2ui_descriptor(uint32_t index)
 	uidesc.instantiate = aria2web_lv2ui_instantiate;
 	uidesc.cleanup = aria2web_lv2ui_cleanup;
 	uidesc.port_event = aria2web_lv2ui_port_event;
-	uidesc.extension_data = nullptr;
+	uidesc.extension_data = aria2web_lv2ui_extension_data;
 
 	return &uidesc;
 }
