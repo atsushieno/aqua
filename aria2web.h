@@ -145,7 +145,6 @@ void handle_request(struct http_request_s* request) {
 	targetPath[0] = '.';
 	memcpy(targetPath + 1, target.buf, target.len);
 	targetPath[target.len + 1] = '\0';
-	/* log_debug(targetPath); */
 	uri_unescape_in_place(targetPath);
 	uri_strip_query_string(targetPath);
 	
@@ -157,7 +156,6 @@ void handle_request(struct http_request_s* request) {
 	int fd = open(filePath.c_str(), O_RDONLY);
 	free(targetPath);
 	if (fd == -1) {
-		log_debug("... was NOT found.");
 		http_response_status(response, 404);
 		http_respond(request, response);
 	} else {

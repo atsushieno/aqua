@@ -1,5 +1,7 @@
 <html>
 <head>
+	<meta http-equiv="Cache-Control" content="no-cache" />
+	<meta http-equiv="Cache-Control" content="no-store" />
 	<style type="text/css">
 		.inst-list-item:hover { color: blue }
 	</style>
@@ -25,23 +27,23 @@ async function onBodyLoad() {
 	var xslText = await readFileBlobAsText("aria2web.xsl");
 	aria2web_stylesheet = new XSLTProcessor();
 	var xsltDoc = new DOMParser().parseFromString(xslText, "application/xml");
-	aria2web_stylesheet.importStylesheet(xsltDoc);
+	aria2web_stylesheet.importStylesheet(xsltDoc.documentElement);
 	onStylesheetLoaded();
 }
 
 async function onStylesheetLoaded() {
 	var bankXmlFiles = [
-		"./ui-metal-gtx/source/METAL-GTX.bank.xml",
-		"./ui-standard-guitar/source/Standard Guitar.bank.xml",
-		"./ui-1912/source/1912.bank.xml",
-		"./karoryfer-bigcat.cello/source/Karoryfer x bigcat cello.bank.xml"
+		"./ui-metal-gtx/METAL-GTX.bank.xml",
+		"./ui-standard-guitar/Standard Guitar.bank.xml",
+		"./ui-1912/1912.bank.xml",
+		"./karoryfer-bigcat.cello/Karoryfer x bigcat cello.bank.xml"
 	];
 
 	results = [];
 	
 	bankXmlFiles.map(async bankXmlFile => {
 		var bankXmlContent = await readFileBlobAsText(bankXmlFile);
-		var programList = await processBankXmlBlob(bankXmlFile, bankXmlContent);
+		var programList = await processBankXmlContent(bankXmlFile, bankXmlContent);
 		results.push(programList);
 		if (results.length == bankXmlFiles.length)
 			app = new Vue({
@@ -51,7 +53,9 @@ async function onStylesheetLoaded() {
 	});
 }
 
-async function processBankXmlBlob(bankXmlFile, bankXmlFragmentTextRaw) {
+async function processBankXmlContent(bankXmlFile, bankXmlFragmentTextRaw) {
+	// It is actually not a well-formed XML, so it is inappropriate to call it an "XML".
+	// It is named so only to reflect the file name...
 	var pattern = /<\?xml[\s]+version[\s]*=\"1.0\"[\s]*\?>/;
 	var bankXmlFragmentText = bankXmlFragmentTextRaw.replace(pattern, '');
 
@@ -61,10 +65,10 @@ async function processBankXmlBlob(bankXmlFile, bankXmlFragmentTextRaw) {
 	var ariaGuiPathAbs = new URL(ariaGuiPath, new URL(bankXmlFile, document.baseURI));
 	
 	var ariaGuiContent = await readFileBlobAsText(ariaGuiPathAbs);
-	return await processAriaGuiBlob(bankXmlFile, doc, ariaGuiPathAbs, ariaGuiContent);
+	return await processAriaGuiContent(bankXmlFile, doc, ariaGuiPathAbs, ariaGuiContent);
 }
 
-async function processAriaGuiBlob(bankXmlFile, doc, ariaGuiPathAbs, ariaGuiDocTextRaw) { // returns Bank{name/thumbnail/programList}
+async function processAriaGuiContent(bankXmlFile, doc, ariaGuiPathAbs, ariaGuiDocTextRaw) { // returns Bank{name/thumbnail/programList}
 	var ariaGuiDoc = new DOMParser().parseFromString(ariaGuiDocTextRaw, "application/xml");
 	var thumbnail = ariaGuiDoc.documentElement.querySelector("StaticImage").getAttribute("image");
 	var thumbnailAbs = new URL(thumbnail, ariaGuiPathAbs);
@@ -72,11 +76,10 @@ async function processAriaGuiBlob(bankXmlFile, doc, ariaGuiPathAbs, ariaGuiDocTe
 	var programNodes = [].slice.call(doc.documentElement.getElementsByTagName("AriaProgram"));
 	var programs = programNodes.map(function(pn) {
 		var bankXmlURL = new URL(bankXmlFile, document.baseURI);
-		var genURL = new URL ("../gen/_", bankXmlURL);
-		var sourceURL = new URL(pn.getAttribute("gui").replace(".xml", ".html"), genURL);
+		var guiURL = new URL(pn.getAttribute("gui"), bankXmlURL);
 		return {
 			name : pn.getAttribute("name"),
-			source: sourceURL.toString()
+			source: guiURL.toString()
 		};
 	});
 	var q = doc.documentElement.querySelector("AriaBank");
@@ -89,43 +92,40 @@ async function processAriaGuiBlob(bankXmlFile, doc, ariaGuiPathAbs, ariaGuiDocTe
 }
 
 // `<a href="..." target="instFrame">` did not work on the embedded webview, but this simple workaround works.
-function loadProgramXhtmlOnInstFrame(el) {
+async function loadProgramXmlOnInstFrame(el) {
 
-	var xhr = new XMLHttpRequest();
-	var programXhtmlFile = el.getAttribute("a2w-source");
-	
-	xhr.addEventListener("load", () => {
-		var resultDoc = new DOMParser().parseFromString(xhr.response, "application/xml");
-		var baseURI = resultDoc.createElement("base");
-		baseURI.setAttribute("href", programXhtmlFile);
-		resultDoc.documentElement.querySelector("head").appendChild(baseURI);
-		var contentDiv = resultDoc.documentElement.querySelector("body > div");
+	var programXmlFile = el.getAttribute("a2w-source");
 
-		// It is kind of ugly hack to get those standalone AriaProgram page working, by
-		// replacing all those image resource paths.
-		var placeholder = document.getElementById("placeholder");
-		var imgs = contentDiv.getElementsByTagName("img");
-		[].slice.call(imgs).map(e => {
-			e.setAttribute("src", new URL(e.getAttribute("src"), programXhtmlFile).toString());
-		});
-		[].slice.call(contentDiv.getElementsByTagName("webaudio-knob")).map(e => {
-			e.setAttribute("src", new URL(e.getAttribute("src"), programXhtmlFile).toString());
-		});
-		[].slice.call(contentDiv.getElementsByTagName("webaudio-switch")).map(e => {
-			e.setAttribute("src", new URL(e.getAttribute("src"), programXhtmlFile).toString());
-		});
-		[].slice.call(contentDiv.getElementsByTagName("webaudio-slider")).map(e => {
-			e.setAttribute("src", new URL(e.getAttribute("src"), programXhtmlFile).toString());
-			e.setAttribute("knobsrc", new URL(e.getAttribute("knobsrc"), programXhtmlFile).toString());
-		});
+	var programXmlContent = await readFileBlobAsText(programXmlFile);
+	var sourceDoc = new DOMParser().parseFromString(programXmlContent, "application/xml");
+	var resultDoc = aria2web_stylesheet.transformToDocument(sourceDoc);
 
-		placeholder.innerHTML = "";
-		placeholder.innerHTML = contentDiv.innerHTML;
+	var contentDiv = resultDoc.documentElement.querySelector("body > div");
 
-		setupWebAudioControlEvents();
+	// It is kind of ugly hack to get those standalone AriaProgram page working, by
+	// replacing all those image resource paths.
+	var placeholder = document.getElementById("placeholder");
+	placeholder.setAttribute("base", programXmlFile);
+
+	var imgs = contentDiv.getElementsByTagName("img");
+	[].slice.call(imgs).map(e => {
+		e.setAttribute("src", new URL(e.getAttribute("src"), programXmlFile).toString());
 	});
-	xhr.open("GET", programXhtmlFile);
-	xhr.send(null);
+	[].slice.call(contentDiv.getElementsByTagName("webaudio-knob")).map(e => {
+		e.setAttribute("src", new URL(e.getAttribute("src"), programXmlFile).toString());
+	});
+	[].slice.call(contentDiv.getElementsByTagName("webaudio-switch")).map(e => {
+		e.setAttribute("src", new URL(e.getAttribute("src"), programXmlFile).toString());
+	});
+	[].slice.call(contentDiv.getElementsByTagName("webaudio-slider")).map(e => {
+		e.setAttribute("src", new URL(e.getAttribute("src"), programXmlFile).toString());
+		e.setAttribute("knobsrc", new URL(e.getAttribute("knobsrc"), programXmlFile).toString());
+	});
+
+	placeholder.innerHTML = "";
+	placeholder.innerHTML = contentDiv.innerHTML;
+
+	setupWebAudioControlEvents();
 }
 
 //--></script>
@@ -138,7 +138,7 @@ function loadProgramXhtmlOnInstFrame(el) {
 				<img width="360" height="120" v-bind:src="pL.thumbnail" />
 				<div v-for="p in pL.programList" style="width: 350px; border-radius: 3px; border-bottom: 1px solid; margin: 3px; padding: 2px">
 					<span type="button" class="inst-list-item"
-					onclick="loadProgramXhtmlOnInstFrame(this)" v-bind:a2w-source="p.source" target="instFrame">{{p.name}}</span>
+					onclick="loadProgramXmlOnInstFrame(this)" v-bind:a2w-source="p.source" target="instFrame">{{p.name}}</span>
 				</div>
 			</div>
 		</div>
