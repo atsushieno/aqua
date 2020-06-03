@@ -19,6 +19,8 @@ There are handful of great instruments with ARIA UI such as  [Unreal Instruments
 
 The real value in this experimental project lies in that the entire UI is based on **complete** web technology ecosystem, not just part of it. For example, [Blueprint](https://github.com/nick-thompson/blueprint) is a great React integration for audio plugins, but still needs full backend implementation just like React Native (but for its own), which is not going to be complete. Full SVG implementation, HTML5 Canvas, WebGL etc. including full access to the DOM integration, is what we want, to achieve "any Web application authoring tool works" state of union.
 
+For example, webaudio-controls is maintained by exactly the same person (g200kg) who also created [KnobMan](https://www.kvraudio.com/product/knobman-by-g200kg) which is most likely used by many ARIA Knob designers. The same image format is widely used by Kontakt nki designers too, they are all the same. It is why aria2web achieves so complete UI results.
+
 Another reason for Web technology-based UI is a host-loadable UI for a remote plugin, which may sound tricky but an option for [Android platform](https://github.com/atsushieno/android-audio-plugin-framework/issues/34).
 
 ## Embedded hosting
@@ -33,9 +35,11 @@ The actual sfizz integration is ongoing. We use a sfizz submodule, with some unc
 
 To build native hosting stuff, you will have to install sfizz dependencies such as libjack-dev and libsndfile-dev, then run `./build.sh`. As the build result, there will be `sfizz-aria2web/dist/lib/lv2/sfizz.lv2` directory.
 
-The plugin UI is neither X11, Gtk2/3 or Qt4/5 but is [KXStudio external UI namespace](https://kx.studio/ns/lv2ext/external-ui). The actual UI is `aria2web-host` running on its own isolated process. Since it uses WebKitGtk, you'll need it locally installed. The process isolation and management is [still an ongoing work](https://github.com/atsushieno/aria2web/issues/4), but the UI shows up on zrythm and qtractor.
+The plugin UI is neither X11, Gtk2/3 or Qt4/5 but is [KXStudio external UI namespace](https://kx.studio/ns/lv2ext/external-ui). The actual UI is `aria2web-host` standalone program, running on its own isolated process. Since it uses WebKitGtk, you'll need it locally installed, but the UI shows up on zrythm and qtractor or perhaps any plugin host that supports the namespace.
 
-The inter-process messaging is done by simple and stupid pipes, with lots of help by [eidheim/tiny-process-library](https://gitlab.com/eidheim/tiny-process-library/).
+The inter-process messaging between LV2 UI plugin and the standalone process is done by simple and stupid pipes, with lots of help by [eidheim/tiny-process-library](https://gitlab.com/eidheim/tiny-process-library/).
+
+Current standalone host implementation is GTK-specific, but it is cosmetic to make it work for other OS-es, just a matter of tweaking the window handle a little bit (show / hide / disable close button).
 
 ## Debugging
 
