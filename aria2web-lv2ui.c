@@ -26,12 +26,9 @@ typedef struct aria2weblv2ui_tag {
 	// "which" UI instance to manipulate.
 	LV2_External_UI_Widget extui;
 
-	#if IN_PROCESS_WEBVIEW
-	aria2web* a2w;
-#else
 	pthread_t ui_launcher_thread;
 	std::unique_ptr<TinyProcessLib::Process> a2w_process;
-#endif
+
 	const char *plugin_uri;
 	const char *bundle_path;
 	LV2UI_Write_Function write_function;
@@ -89,29 +86,20 @@ void a2wlv2_note_callback(void* context, int key, int velocity)
 
 void extui_show_callback(LV2_External_UI_Widget* widget) {
 	auto a2w = (aria2weblv2ui*) (void*) widget;
-#if IN_PROCESS_WEBVIEW
-	// FIXME: implement
-	printf ("!!!!! EXTUI_SHOW_CALLBACK %s\n", a2w->plugin_uri);
-#else
+
 	a2w->a2w_process->write("show\n");
-#endif
 }
 
 void extui_hide_callback(LV2_External_UI_Widget* widget) {
 	auto a2w = (aria2weblv2ui*) (void*) widget;
-#if IN_PROCESS_WEBVIEW
-	// FIXME: implement
-	printf ("!!!!! EXTUI_HIDE_CALLBACK %s\n", a2w->plugin_uri);
-#else
+
 	a2w->a2w_process->write("hide\n");
-#endif
 }
 
 void extui_run_callback(LV2_External_UI_Widget* widget) {
 	// nothing to do here...
 }
 
-#if !IN_PROCESS_WEBVIEW
 void* runloop_aria2web_host(void* context)
 {
 	auto aui = (aria2weblv2ui*) context;
@@ -138,8 +126,6 @@ void* runloop_aria2web_host(void* context)
 
 	return nullptr;
 }
-
-#endif
 
 LV2UI_Handle aria2web_lv2ui_instantiate(
 	const LV2UI_Descriptor *descriptor,
@@ -175,21 +161,12 @@ LV2UI_Handle aria2web_lv2ui_instantiate(
 		}
 	}
 
-#if IN_PROCESS_WEBVIEW
-	ret->a2w = aria2web_create(bundle_path);
-	aria2web_set_control_change_callback(ret->a2w, a2wlv2_cc_callback, ret);
-	aria2web_set_note_callback(ret->a2w, a2wlv2_note_callback, ret);
-	ret->a2w->web_local_file_path = ret->bundle_path;
-
-	aria2web_start(ret->a2w, nullptr);
-#else
 	pthread_t thread;
 	pthread_create(&thread, nullptr, runloop_aria2web_host, ret);
 	pthread_setname_np(thread, "aria2web_lv2ui_host_launcher");
 	ret->ui_launcher_thread = thread;
 	while (ret->a2w_process.get() == nullptr)
 		usleep(1000);
-#endif
 
 	*widget = &ret->extui;
 	return ret;
@@ -199,12 +176,8 @@ void aria2web_lv2ui_cleanup(LV2UI_Handle ui)
 {
 	puts("aria2web_lv2ui_cleanup");
 	auto a2w = (aria2weblv2ui*) ui;
-#if IN_PROCESS_WEBVIEW
-	aria2web_stop(a2wlv2->a2w);
-#else
 	a2w->a2w_process->kill();
 	a2w->a2w_process->write("quit\n");
-#endif
 	free(a2w);
 }
 
