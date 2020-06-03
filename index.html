@@ -7,9 +7,29 @@
 <script src="webaudio-controls.js"></script>
 <script src="aria2web.js"></script>
 <script type="text/javascript">//<!--
-		
-function onBodyLoad() {
-	
+
+async function readFileBlobAsText(filePath) {
+	var res = await fetch(filePath);
+	var blob = await res.blob();
+	return new Promise((resolve, reject) => {
+		var fr = new FileReader();  
+		fr.onload = () => {
+			resolve(fr.result);
+		};
+		fr.onerror = reject;
+		fr.readAsText(blob);
+	});
+}
+
+async function onBodyLoad() {
+	var xslText = await readFileBlobAsText("aria2web.xsl");
+	aria2web_stylesheet = new XSLTProcessor();
+	var xsltDoc = new DOMParser().parseFromString(xslText, "application/xml");
+	aria2web_stylesheet.importStylesheet(xsltDoc);
+	onStylesheetLoaded();
+}
+
+async function onStylesheetLoaded() {
 	var bankXmlFiles = [
 		"./ui-metal-gtx/source/METAL-GTX.bank.xml",
 		"./ui-standard-guitar/source/Standard Guitar.bank.xml",
@@ -19,35 +39,19 @@ function onBodyLoad() {
 
 	results = [];
 	
-	bankXmlFiles.map(bankXmlFile => processBankXml(bankXmlFile, programList => {
+	bankXmlFiles.map(async bankXmlFile => {
+		var bankXmlContent = await readFileBlobAsText(bankXmlFile);
+		var programList = await processBankXmlBlob(bankXmlFile, bankXmlContent);
 		results.push(programList);
 		if (results.length == bankXmlFiles.length)
 			app = new Vue({
 				el: '#app',
 				data: { programList: results }
 			});
-	}));
-}
-
-function processBankXml(bankXmlFile, resolve, reject) {
-	fetch(bankXmlFile).then(response => {		
-		if (!response.ok) {
-			throw new Error("Failed to retrieve " + bankXmlFile);
-		}
-		return response.blob();
-	}).then(blob => {
-		var reader = new FileReader();
-		reader.onload = () => {
-			processBankXmlBlob(bankXmlFile, reader.result, programList => {
-				resolve(programList);
-			}, reject);
-		};
-		reader.onerror = reject;
-		reader.readAsText(blob);
 	});
 }
 
-function processBankXmlBlob(bankXmlFile, bankXmlFragmentTextRaw, resolve, reject) {
+async function processBankXmlBlob(bankXmlFile, bankXmlFragmentTextRaw) {
 	var pattern = /<\?xml[\s]+version[\s]*=\"1.0\"[\s]*\?>/;
 	var bankXmlFragmentText = bankXmlFragmentTextRaw.replace(pattern, '');
 
@@ -56,22 +60,11 @@ function processBankXmlBlob(bankXmlFile, bankXmlFragmentTextRaw, resolve, reject
 	var ariaGuiPath = doc.documentElement.querySelector("AriaGUI").getAttribute("path");
 	var ariaGuiPathAbs = new URL(ariaGuiPath, new URL(bankXmlFile, document.baseURI));
 	
-	fetch(ariaGuiPathAbs).then (response => {
-		if (!response.ok)
-			throw new Error("Failed to retrieve AriaGUI definition file.");
-		return response.blob();
-	}).then(blob => {
-		var reader = new FileReader();
-		reader.onload = () => {
-			resolve(processAriaGuiBlob(bankXmlFile, doc, ariaGuiPathAbs, reader.result));
-		};
-		reader.onerror = reject;
-		reader.readAsText(blob);
-		
-	});
+	var ariaGuiContent = await readFileBlobAsText(ariaGuiPathAbs);
+	return await processAriaGuiBlob(bankXmlFile, doc, ariaGuiPathAbs, ariaGuiContent);
 }
 
-function processAriaGuiBlob(bankXmlFile, doc, ariaGuiPathAbs, ariaGuiDocTextRaw) {
+async function processAriaGuiBlob(bankXmlFile, doc, ariaGuiPathAbs, ariaGuiDocTextRaw) { // returns Bank{name/thumbnail/programList}
 	var ariaGuiDoc = new DOMParser().parseFromString(ariaGuiDocTextRaw, "application/xml");
 	var thumbnail = ariaGuiDoc.documentElement.querySelector("StaticImage").getAttribute("image");
 	var thumbnailAbs = new URL(thumbnail, ariaGuiPathAbs);
