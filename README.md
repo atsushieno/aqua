@@ -37,6 +37,8 @@ To build native hosting stuff, you will have to install sfizz dependencies such 
 
 The plugin UI is neither X11, Gtk2/3 or Qt4/5 but is [KXStudio external UI namespace](https://kx.studio/ns/lv2ext/external-ui). The actual UI is `aria2web-host` standalone program, running on its own isolated process. Since it uses WebKitGtk, you'll need it locally installed, but the UI shows up on zrythm and qtractor or perhaps any plugin host that supports the namespace.
 
+![aria2web interprocess UI](aria2web-ipc.drawio.svg)
+
 The inter-process messaging between LV2 UI plugin and the standalone process is done by simple and stupid pipes, with lots of help by [eidheim/tiny-process-library](https://gitlab.com/eidheim/tiny-process-library/).
 
 Current standalone host implementation is GTK-specific, but it is cosmetic to make it work for other OS-es, just a matter of tweaking the window handle a little bit (show / hide / disable close button).
