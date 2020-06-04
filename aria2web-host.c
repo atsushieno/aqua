@@ -54,8 +54,9 @@ int main(int argc, char** argv) {
 	*strrchr(rpath, '/') = '\0';
 	std::string path{rpath};
 	free(rpath);
+	path = path + "/web";
 
-	printf("#aria2web-host: started. current directory is %s \n", path.c_str());
+	printf("#aria2web-host: started. Web directory is %s \n", path.c_str());
 	fflush(stdout);
 
 	auto a2w = aria2web_create(path.c_str());

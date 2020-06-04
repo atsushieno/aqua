@@ -35,14 +35,6 @@ DSTLV2=sfizz-aria2web/dist/lib/lv2/sfizz.lv2/
 cp aria2web-lv2ui.so $DSTLV2
 cp aria2web.ttl $DSTLV2
 cp manifest.ttl $DSTLV2
-
-# FIXME: change destination to the parent directory...
-DSTRES=$DSTLV2/resources/
-mkdir -p $DSTRES
-echo "Copying resources..."
-cp aria2web-host $DSTRES
-cp index.html $DSTRES
-cp aria2web.xsl $DSTRES
-cp -R banks $DSTRES
-cp *.js $DSTRES
+cp aria2web-host $DSTLV2
+cp -R web $DSTLV2
 echo "build successfully completed."

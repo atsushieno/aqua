@@ -138,8 +138,7 @@ LV2UI_Handle aria2web_lv2ui_instantiate(
 {
 	auto ret = new aria2weblv2ui();
 	ret->plugin_uri = plugin_uri;
-	// FIXME: do not alter bundle path. Adjust it in aria2web.h. (it does not even free memory now)
-	ret->bundle_path = strdup((std::string{bundle_path} + "/resources").c_str());
+	ret->bundle_path = strdup(bundle_path);
 	ret->write_function = write_function;
 	ret->controller = controller;
 	ret->features = features;
@@ -178,6 +177,7 @@ void aria2web_lv2ui_cleanup(LV2UI_Handle ui)
 	auto a2w = (aria2weblv2ui*) ui;
 	a2w->a2w_process->kill();
 	a2w->a2w_process->write("quit\n");
+	free(a2w->bundle_path);
 	free(a2w);
 }
 
