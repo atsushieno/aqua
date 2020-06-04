@@ -1,9 +1,7 @@
-if (typeof(Aria2WebWindowCloseCallback) != "undefined") {
-	console.log("registering close event");
-	window.onclose = () => { console.log("CLOSING"); };
-	window.addEventListener("close", Aria2WebWindowCloseCallback);
-}
 Aria2Web = {};
+Aria2Web.Config = {};
+Aria2Web.Config.BankXmlFiles = [];
+
 if (typeof(ControlChangeCallback) != "undefined")
 	Aria2Web.notifyControlChange = ControlChangeCallback;
 else

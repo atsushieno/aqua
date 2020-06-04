@@ -29,6 +29,7 @@ void* aria2web_get_native_widget(aria2web* instance);
 #include <sys/mman.h>
 #include <pthread.h>
 #include <string>
+#include <vector>
 
 #include <webview.h>
 #include <httpserver.h>
@@ -48,6 +49,8 @@ int a2w_get_http_server_port_number()
 typedef struct aria2web_tag {
 	pthread_t http_server_thread{0};
 	std::string web_local_file_path{};
+	std::unique_ptr<std::vector<std::string>> local_instrument_files{nullptr};
+	std::unique_ptr<std::vector<std::string>> local_instrument_dirs{nullptr};
 	void* webview{nullptr};
 	void* parent_window{nullptr};
 	void* webview_widget{nullptr};
@@ -136,22 +139,37 @@ const char* get_mime_type_from_filename(char* filename) {
 	return mime_types[0];
 }
 
+/*
+  The HTTP request mapping is super hacky; if the requested URLs begin with any of
+  the local instrument file directories, then it just returns the file content from
+  local files.
+  Keep in mind that this is a local application which is not as secure as web pages.
+ */
 void handle_request(struct http_request_s* request) {
+	auto a2w = (aria2web*) http_request_server_userdata(request);
+
 	struct http_response_s* response = http_response_init();
 
 	struct http_string_s target = http_request_target(request);
 	char* targetPath = (char*) calloc(target.len + 2, 1);
-	/* FIXME: make sure that the requested resource is under pwd. */
+
 	targetPath[0] = '.';
 	memcpy(targetPath + 1, target.buf, target.len);
 	targetPath[target.len + 1] = '\0';
 	uri_unescape_in_place(targetPath);
 	uri_strip_query_string(targetPath);
-	
+
 	const char* mimeType = get_mime_type_from_filename(targetPath);
 
-	auto a2w = (aria2web*) http_request_server_userdata(request);
-	std::string filePath = a2w->web_local_file_path.length() > 0 ? a2w->web_local_file_path + "/" + targetPath : targetPath;
+	std::string filePath{};
+	for (auto dir : *a2w->local_instrument_dirs) {
+		if (strncmp(dir.c_str(), targetPath + 1, dir.length()) == 0) {
+			filePath = std::string{targetPath + 1};
+			break;
+		}
+	}
+	if (filePath.length() == 0)
+		filePath = a2w->web_local_file_path.length() > 0 ? a2w->web_local_file_path + "/" + targetPath : targetPath;
 
 	int fd = open(filePath.c_str(), O_RDONLY);
 	free(targetPath);
@@ -262,6 +280,46 @@ void webview_callback_note(const char *seq, const char *req, void *arg) {
 	}
 }
 
+void webview_callback_get_local_instruments(const char *seq, const char *req, void *arg) {
+	auto a2w = (aria2web*) arg;
+
+	std::string fileList{};
+	std::string aria2web_config_file{getenv("HOME")};
+	aria2web_config_file += "/.config/aria2web.config";
+	struct stat cfgStat;
+	if (stat(aria2web_config_file.c_str(), &cfgStat) == 0) {
+		FILE *fp = fopen(aria2web_config_file.c_str(), "r");
+		if (fp != nullptr) {
+			char buf[1024];
+			a2w->local_instrument_files->clear();
+			a2w->local_instrument_dirs->clear();
+			while (!feof(fp)) {
+				buf[0] = '\0';
+				fgets(&buf[0], 1023, fp);
+				buf[strlen(buf) - 1] = '\0';
+				if (buf[strlen(buf) - 1] == '\r')
+					buf[strlen(buf) - 1] = '\0';
+				if (buf[0] == '\0')
+					continue; // empty line
+				fileList += (fileList.length() == 0 ? "" : ", ");
+				fileList += "\"";
+				a2w->local_instrument_files->emplace_back(std::string{buf});
+				fileList += buf;
+				fileList += "\"";
+
+				if (strrchr(buf, '/') != nullptr)
+					*strrchr(buf, '/') = '\0';
+				a2w->local_instrument_dirs->emplace_back(std::string{buf});
+			}
+		}
+		else
+			printf("#failed to load config file %s...\n", aria2web_config_file.c_str());
+	}
+	std::string cfgJS{"Aria2Web.Config={BankXmlFiles: [" + fileList + "]}; onLocalBankFilesUpdated();"};
+
+	webview_eval(a2w->webview, cfgJS.c_str());
+}
+
 void on_dispatch(webview_t w, void* context) {
 	// FIXME: add gtk window close callback here.
 }
@@ -276,12 +334,15 @@ void* a2w_run_webview_loop(void* context) {
 	sprintf(url, urlfmt, port);
 
 	auto a2w = (aria2web*) context;
+	a2w->local_instrument_files.reset(new std::vector<std::string>());
+	a2w->local_instrument_dirs.reset(new std::vector<std::string>());
 	void* w = a2w->webview = webview_create(true, nullptr);
 	webview_set_title(w, "Aria2Web embedded example");
 	webview_set_size(w, 1200, 450, WEBVIEW_HINT_NONE);
 	webview_bind(w, "ControlChangeCallback", webview_callback_control_change, context);
 	webview_bind(w, "NoteCallback", webview_callback_note, context);
-	webview_bind(w, "Aria2WebWindowCloseCallback", webview_callback_window_close, context);
+	webview_bind(w, "GetLocalInstrumentsCallback", webview_callback_get_local_instruments, context);
+
 	webview_dispatch(w, on_dispatch, context);
 	webview_navigate(w, url);
 	free(url);

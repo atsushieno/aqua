@@ -13,7 +13,10 @@
 
 <body onload="onBodyLoad()">
 	<div id="app">
-		<div style="width: 380px; height: 400px; overflow-y:scroll">
+		<div id="bank-manager">
+			<button onclick="onChooseBankDirectoryCommand()">Choose bank directory</button>
+		</div>
+		<div id="bank-list" style="width: 380px; height: 400px; overflow-y:scroll">
 			<div v-for="pL in programList">
 				<img width="360" height="120" v-bind:src="pL.thumbnail" />
 				<div v-for="p in pL.programList" style="width: 350px; border-radius: 3px; border-bottom: 1px solid; margin: 3px; padding: 2px">

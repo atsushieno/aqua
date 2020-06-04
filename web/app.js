@@ -1,3 +1,10 @@
+PresetBankXmlFiles = [
+	"banks/ui-metal-gtx/METAL-GTX.bank.xml",
+	"banks/ui-standard-guitar/Standard Guitar.bank.xml",
+	"banks/ui-1912/1912.bank.xml",
+	"banks/karoryfer-bigcat.cello/Karoryfer x bigcat cello.bank.xml"
+];
+
 async function readFileBlobAsText(filePath) {
 	var res = await fetch(filePath);
 	var blob = await res.blob();
@@ -12,20 +19,32 @@ async function readFileBlobAsText(filePath) {
 }
 
 async function onBodyLoad() {
+	// load aria2web.xsl.
 	var xslText = await readFileBlobAsText("aria2web.xsl");
 	aria2web_stylesheet = new XSLTProcessor();
 	var xsltDoc = new DOMParser().parseFromString(xslText, "application/xml");
 	aria2web_stylesheet.importStylesheet(xsltDoc.documentElement);
-	onStylesheetLoaded();
+
+	// prepare bank list.
+	loadBankXmlFileList();
 }
 
-async function onStylesheetLoaded() {
-	var bankXmlFiles = [
-		"./banks/ui-metal-gtx/METAL-GTX.bank.xml",
-		"./banks/ui-standard-guitar/Standard Guitar.bank.xml",
-		"./banks/ui-1912/1912.bank.xml",
-		"./banks/karoryfer-bigcat.cello/Karoryfer x bigcat cello.bank.xml"
-	];
+async function loadBankXmlFileList() {
+	if (typeof (GetLocalInstrumentsCallback) != "undefined") {
+		GetLocalInstrumentsCallback();
+	} else {
+		alert("No local instruments are found. Showing demo UI");
+		Aria2Web.Config.BankXmlFiles = PresetBankXmlFiles;
+		onLocalBankFilesUpdated();
+	}
+}
+
+// This is called by either explicitly from this script or via C callback.
+function onLocalBankFilesUpdated() {
+	var bankXmlFiles = Aria2Web.Config.BankXmlFiles;
+
+	for (var i in Aria2Web.Config.BankXmlFiles)
+		console.log(Aria2Web.Config.BankXmlFiles[i]);
 
 	results = [];
 	
@@ -39,6 +58,18 @@ async function onStylesheetLoaded() {
 				data: { programList: results }
 			});
 	});
+}
+
+async function onChooseBankDirectoryCommand() {
+
+	if (typeof (window.chooseFileSystemEntries) != "undefined") {
+		window.chooseFileSystemEntries({type: "open-directory"})
+			.then(dirent => {
+				var dir = getDirectory(dirent.name)
+			});
+	} else {
+		alert("Native file system API is not supported on this Web Browser / WebView.");
+	}
 }
 
 async function processBankXmlContent(bankXmlFile, bankXmlFragmentTextRaw) {
