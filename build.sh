@@ -42,7 +42,7 @@ mkdir -p $DSTRES
 echo "Copying resources..."
 cp aria2web-host $DSTRES
 cp index.html $DSTRES
-cp -R ui-* $DSTRES
-cp -R karoryfer-* $DSTRES
+cp aria2web.xsl $DSTRES
+cp -R banks $DSTRES
 cp *.js $DSTRES
 echo "build successfully completed."
