@@ -114,8 +114,6 @@ async function selectInstrument(el) {
 	var sfzFile = new URL(sfzURL).pathname;
 	var programXmlFile = el.getAttribute("a2w-source");
 
-	console.log("SFZFILE: " + sfzFile);
-
 	Aria2Web.notifyChangeProgram(sfzFile);
 	loadProgramXmlOnInstFrame(programXmlFile);
 }

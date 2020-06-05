@@ -42,6 +42,11 @@ void change_program_callback(void* context, const char* sfzFilename)
 	}
 }
 
+void* launch_aria2web(void* context) {
+	aria2web_start((aria2web*) context);
+	return nullptr;
+};
+
 #ifdef WIN32
 int WINAPI WinMain(HINSTANCE hInt, HINSTANCE hPrevInst, LPSTR lpCmdLine,
                    int nCmdShow) {
@@ -68,7 +73,7 @@ int main(int argc, char** argv) {
 	aria2web_set_change_program_callback(a2w, change_program_callback, nullptr);
 
 	pthread_t a2w_thread;
-	pthread_create(&a2w_thread, nullptr, aria2web_start, a2w);
+	pthread_create(&a2w_thread, nullptr, launch_aria2web, a2w);
 	while (!a2w->webview_ready)
 		usleep(1000);
 	if (standalone)

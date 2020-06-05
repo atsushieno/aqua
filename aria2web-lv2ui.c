@@ -2,13 +2,19 @@
 #include <lv2/lv2plug.in/ns/lv2core/lv2.h>
 #include <lv2/lv2plug.in/ns/extensions/ui/ui.h>
 #include <lv2/lv2plug.in/ns/ext/atom/atom.h>
+#include <lv2/lv2plug.in/ns/ext/atom/forge.h>
 #include <lv2/lv2plug.in/ns/ext/midi/midi.h>
+#include <lv2/lv2plug.in/ns/ext/patch/patch.h>
 #include <lv2/lv2plug.in/ns/ext/urid/urid.h>
 #define HTTPSERVER_IMPL
 #define ARIA2WEB_IMPL
 #include "lv2_external_ui.h"
 #include "aria2web.h"
 #include "process.hpp"
+
+
+#define PATH_MAX 4096
+#define SFIZZ__sfzFile "https://github.com/atsushieno/aria2web:sfzfile"
 
 extern "C" {
 
@@ -30,14 +36,14 @@ typedef struct aria2weblv2ui_tag {
 	std::unique_ptr<TinyProcessLib::Process> a2w_process;
 
 	const char *plugin_uri;
-	const char *bundle_path;
+	char *bundle_path;
 	LV2UI_Write_Function write_function;
 	LV2UI_Controller controller;
 	const LV2_Feature *const *features;
-	int urid_atom, urid_frame_time, urid_midi_event, urid_atom_event_transfer;
+	int urid_atom, urid_frame_time, urid_midi_event, urid_atom_object, urid_patch_set, urid_patch_property, urid_patch_value, urid_atom_path, urid_sfzfile, urid_atom_event_transfer;
 	bool is_visible_now{false};
 
-	char atom_buffer[50];
+	char atom_buffer[PATH_MAX + 256];
 } aria2weblv2ui;
 
 char* fill_atom_message_base(aria2weblv2ui* a, LV2_Atom_Sequence* seq)
@@ -84,9 +90,28 @@ void a2wlv2_note_callback(void* context, int key, int velocity)
 	a->write_function(a->controller, ARIA2WEB_LV2_CONTROL_PORT, seq->atom.size + sizeof(LV2_Atom), a->urid_atom_event_transfer, a->atom_buffer);
 }
 
-void a2wlv2_select_sfz_callback(void* context, char* sfzfile)
+void a2wlv2_select_sfz_callback(void* context, const char* sfzfile)
 {
-	// FIXME: implement. Pass the filename to `patch:writable <@LV2PLUGIN_URI@:sfzfile> ;`
+	auto a = (aria2weblv2ui*) context;
+
+	// Maybe it is much easier with forge, but this is the only complicated one so far...
+	//
+	// The event should contain an atom:Object whose body object type
+	// is a patch:Set whose patch:property is sfzfile
+	auto seq = (LV2_Atom_Sequence*) a->atom_buffer;
+	memset(seq, 0, PATH_MAX + 256);
+	seq->atom.type = a->urid_atom_object;
+	auto body = (LV2_Atom_Object_Body*) &seq->body;
+	body->otype = a->urid_patch_set;
+	seq->atom.size = sizeof(LV2_Atom_Event) + sizeof(LV2_Atom_Object) + strlen(sfzfile);
+
+	// FIXME: fill right property structure here.
+	auto property = (LV2_Atom_Property *) ((char*) body + sizeof(LV2_Atom_Object_Body));
+	property->atom.type = a->urid_patch_property;
+	property->body.key = a->urid_sfzfile;
+	//strcpy((char*) property->body.value, sfzfile);
+
+	a->write_function(a->controller, ARIA2WEB_LV2_CONTROL_PORT, seq->atom.size + sizeof(LV2_Atom), a->urid_atom_event_transfer, a->atom_buffer);
 }
 
 void extui_show_callback(LV2_External_UI_Widget* widget) {
@@ -113,7 +138,7 @@ void* runloop_aria2web_host(void* context)
 		if (n <= 0)
 			return;
 		int v1, v2;
-		char *sfz;
+		const char *sfz;
 		switch (bytes[0]) {
 			case 'N':
 				sscanf(bytes + 1, "#%x,#%x", &v1, &v2);
@@ -128,6 +153,7 @@ void* runloop_aria2web_host(void* context)
 			case 'P':
 				sfz = bytes + 2;
 				a2wlv2_select_sfz_callback(aui, sfz);
+				break;
 			default:
 				printf("Unrecognized command sent by aria2web-host: %s\n", bytes);
 		}
@@ -164,6 +190,12 @@ LV2UI_Handle aria2web_lv2ui_instantiate(
 			ret->urid_atom = urid->map(urid->handle, LV2_ATOM_URI);
 			ret->urid_frame_time = urid->map(urid->handle, LV2_ATOM__frameTime);
 			ret->urid_midi_event = urid->map(urid->handle, LV2_MIDI__MidiEvent);
+			ret->urid_atom_object = urid->map(urid->handle, LV2_ATOM__Object);
+			ret->urid_patch_set = urid->map(urid->handle, LV2_PATCH__Set);
+			ret->urid_patch_property = urid->map(urid->handle, LV2_PATCH__property);
+			ret->urid_patch_value = urid->map(urid->handle, LV2_PATCH__value);
+			ret->urid_atom_path = urid->map(urid->handle, LV2_ATOM__Path);
+			ret->urid_sfzfile = urid->map(urid->handle, SFIZZ__sfzFile);
 			ret->urid_atom_event_transfer = urid->map(urid->handle, LV2_ATOM__eventTransfer);
 			break;
 		}
@@ -198,34 +230,6 @@ void aria2web_lv2ui_port_event(LV2UI_Handle ui, uint32_t port_index, uint32_t bu
 	}
 }
 
-LV2UI_Show_Interface aria2weblv2ui_show_interface;
-
-int aria2web_lv2ui_showinterface_show(LV2UI_Handle ui)
-{
-	// FIXME: implement (but zrythm never calls it...?)
-	auto a2w = (aria2weblv2ui*) (void*) ui;
-	printf ("!!!!! LV2UI_Show_Interface: show %s\n", a2w->plugin_uri);
-}
-
-int aria2web_lv2ui_showinterface_hide(LV2UI_Handle ui)
-{
-	// FIXME: implement (but zrythm never calls it...?)
-	auto a2w = (aria2weblv2ui*) (void*) ui;
-	printf ("!!!!! LV2UI_Show_Interface: hide %s\n", a2w->plugin_uri);
-}
-
-void* aria2web_lv2ui_extension_data(const char *uri)
-{
-	printf ("!!!!! aria2web_lv2ui_extension_data: %s\n", uri);
-	// zrythm never calls it...?
-	if (strcmp(uri, LV2_UI__showInterface) == 0) {
-		aria2weblv2ui_show_interface.show = aria2web_lv2ui_showinterface_show;
-		aria2weblv2ui_show_interface.hide = aria2web_lv2ui_showinterface_hide;
-		return &aria2weblv2ui_show_interface;
-	}
-	return nullptr;
-}
-
 LV2UI_Descriptor uidesc;
 
 LV2_SYMBOL_EXPORT const LV2UI_Descriptor* lv2ui_descriptor(uint32_t index)
@@ -234,7 +238,7 @@ LV2_SYMBOL_EXPORT const LV2UI_Descriptor* lv2ui_descriptor(uint32_t index)
 	uidesc.instantiate = aria2web_lv2ui_instantiate;
 	uidesc.cleanup = aria2web_lv2ui_cleanup;
 	uidesc.port_event = aria2web_lv2ui_port_event;
-	uidesc.extension_data = aria2web_lv2ui_extension_data;
+	uidesc.extension_data = nullptr;
 
 	return &uidesc;
 }

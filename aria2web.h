@@ -34,7 +34,6 @@ void* aria2web_get_native_widget(aria2web* instance);
 #include <webview.h>
 #include <httpserver.h>
 
-
 void* a2w_run_http_server(void* context);
 void* a2w_run_webview_loop(void* context);
 
@@ -201,12 +200,12 @@ void* a2w_run_http_server(void* context) {
 
 void aria2web_show_window(aria2web* a2w)
 {
-	gtk_widget_show(webview_get_window((webview_t) a2w->webview));
+	gtk_widget_show((GtkWidget*) webview_get_window((webview_t) a2w->webview));
 }
 
 void aria2web_hide_window(aria2web* a2w)
 {
-	gtk_widget_hide(webview_get_window((webview_t) a2w->webview));
+	gtk_widget_hide((GtkWidget*) webview_get_window((webview_t) a2w->webview));
 }
 
 void aria2web_set_control_change_callback(aria2web* a2w, aria2web_control_change_callback callback, void* callbackContext)
@@ -357,7 +356,7 @@ void* a2w_run_webview_loop(void* context) {
 
 	webview_dispatch(w, on_dispatch, context);
 	webview_navigate(w, url);
-	gtk_window_set_deletable(webview_get_window(w), FALSE);
+	gtk_window_set_deletable((GtkWindow*) webview_get_window(w), FALSE);
 	free(url);
 	a2w->webview_ready = TRUE;
 	webview_run(w);

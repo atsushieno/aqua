@@ -1,11 +1,14 @@
 #!/bin/sh
 
-g++ -g -fpermissive -I external/webview/ -I external/httpserver.h/ \
+_CC=gcc
+_CXX=g++
+
+$_CXX -g -fpermissive -I external/webview/ -I external/httpserver.h/ \
 	aria2web-host.c \
 	`pkg-config --cflags --libs gtk+-3.0 webkit2gtk-4.0` \
 	-o aria2web-host \
 	|| exit 1
-g++ -g -fpermissive -I external/webview/ -I external/httpserver.h/ \
+$_CXX -g -fpermissive -I external/webview/ -I external/httpserver.h/ \
 	-I external/tiny-process-library \
 	external/tiny-process-library/process.cpp \
 	external/tiny-process-library/process_unix.cpp \
@@ -25,7 +28,7 @@ if [ ! -d sfizz-aria2web/dist ] ; then
   echo "building sfizz..." ;
   mkdir sfizz-aria2web ;
   cd sfizz-aria2web ;
-  cmake -DCMAKE_INSTALL_PREFIX=`pwd`/dist ../external/sfizz ;
+  CXX=$_CXX CC=$_CC cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=`pwd`/dist ../external/sfizz ;
   make ;
   make install ;
   cd .. ;
