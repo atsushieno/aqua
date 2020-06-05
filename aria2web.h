@@ -345,6 +345,7 @@ void* a2w_run_webview_loop(void* context) {
 
 	webview_dispatch(w, on_dispatch, context);
 	webview_navigate(w, url);
+	gtk_window_set_deletable(webview_get_window(w), FALSE);
 	free(url);
 	a2w->webview_ready = TRUE;
 	webview_run(w);
