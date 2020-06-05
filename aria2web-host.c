@@ -12,31 +12,34 @@ bool standalone{TRUE};
   It must call fflush(stdout) every time so that the plugin UI module can process an entire line.
  */
 
-void sample_cc_callback(void* context, int cc, int value)
+void control_change_callback(void* context, int cc, int value)
 {
 	if (standalone)
-		printf("sample CC callback: CC#%x = %d\n", cc, value);
+		printf("Control change callback: CC#%x = %d\n", cc, value);
 	else {
 		printf("C#%x,#%x\n", cc, value);
 		fflush(stdout);
 	}
 }
 
-void sample_note_callback(void* context, int key, int velocity)
+void note_callback(void* context, int key, int velocity)
 {
 	if (standalone)
-		printf("sample Note callback: key %d velocity %d\n", key, velocity);
+		printf("Note callback: key %d velocity %d\n", key, velocity);
 	else {
 		printf("N#%x,#%x\n", key, velocity);
 		fflush(stdout);
 	}
 }
 
-void sample_window_close_callback(void* context)
+void change_program_callback(void* context, const char* sfzFilename)
 {
-	printf("closing\n");
-	aria2web_stop((aria2web*) context);
-	exit(0);
+	if (standalone)
+		printf("Change program callback: %s\n", sfzFilename);
+	else {
+		printf("P %s\n", sfzFilename);
+		fflush(stdout);
+	}
 }
 
 #ifdef WIN32
@@ -60,9 +63,9 @@ int main(int argc, char** argv) {
 	fflush(stdout);
 
 	auto a2w = aria2web_create(path.c_str());
-	aria2web_set_control_change_callback(a2w, sample_cc_callback, nullptr);
-	aria2web_set_note_callback(a2w, sample_note_callback, nullptr);
-	aria2web_set_window_close_callback(a2w, sample_window_close_callback, nullptr);
+	aria2web_set_control_change_callback(a2w, control_change_callback, nullptr);
+	aria2web_set_note_callback(a2w, note_callback, nullptr);
+	aria2web_set_change_program_callback(a2w, change_program_callback, nullptr);
 
 	pthread_t a2w_thread;
 	pthread_create(&a2w_thread, nullptr, aria2web_start, a2w);

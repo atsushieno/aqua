@@ -14,6 +14,12 @@ else
 	Aria2Web.notifyNoteMessage = function(state, key) {
 		console.log("note event: " + state + " " + key);
 	};
+if (typeof(ChangeProgramCallback) != "undefined")
+	Aria2Web.notifyChangeProgram = ChangeProgramCallback;
+else
+	Aria2Web.notifyChangeProgram = function(sfz) {
+		console.log("change program event: " + sfz);
+	};
 
 function setupWebAudioControlChangeEvent(e) {
 	e.addEventListener("change", () => {

@@ -33,7 +33,7 @@ async function loadBankXmlFileList() {
 	if (typeof (GetLocalInstrumentsCallback) != "undefined") {
 		GetLocalInstrumentsCallback();
 	} else {
-		alert("No local instruments are found. Showing demo UI");
+		console.log("No local instruments are found. Showing demo UI");
 		Aria2Web.Config.BankXmlFiles = PresetBankXmlFiles;
 		onLocalBankFilesUpdated();
 	}
@@ -42,9 +42,6 @@ async function loadBankXmlFileList() {
 // This is called by either explicitly from this script or via C callback.
 function onLocalBankFilesUpdated() {
 	var bankXmlFiles = Aria2Web.Config.BankXmlFiles;
-
-	for (var i in Aria2Web.Config.BankXmlFiles)
-		console.log(Aria2Web.Config.BankXmlFiles[i]);
 
 	results = [];
 	
@@ -96,9 +93,11 @@ async function processAriaGuiContent(bankXmlFile, doc, ariaGuiPathAbs, ariaGuiDo
 	var programs = programNodes.map(function(pn) {
 		var bankXmlURL = new URL(bankXmlFile, document.baseURI);
 		var guiURL = new URL(pn.getAttribute("gui"), bankXmlURL);
+		var sfzURL = new URL(pn.querySelector("AriaElement").getAttribute("path"), bankXmlURL);
 		return {
 			name : pn.getAttribute("name"),
-			source: guiURL.toString()
+			source: guiURL.toString(),
+			sfz: sfzURL.toString()
 		};
 	});
 	var q = doc.documentElement.querySelector("AriaBank");
@@ -110,10 +109,18 @@ async function processAriaGuiContent(bankXmlFile, doc, ariaGuiPathAbs, ariaGuiDo
 	};
 }
 
-// `<a href="..." target="instFrame">` did not work on the embedded webview, but this simple workaround works.
-async function loadProgramXmlOnInstFrame(el) {
-
+async function selectInstrument(el) {
+	var sfzURL = el.getAttribute("a2w-sfz");
+	var sfzFile = new URL(sfzURL).pathname;
 	var programXmlFile = el.getAttribute("a2w-source");
+
+	console.log("SFZFILE: " + sfzFile);
+
+	Aria2Web.notifyChangeProgram(sfzFile);
+	loadProgramXmlOnInstFrame(programXmlFile);
+}
+
+async function loadProgramXmlOnInstFrame(programXmlFile) {
 
 	var programXmlContent = await readFileBlobAsText(programXmlFile);
 	var sourceDoc = new DOMParser().parseFromString(programXmlContent, "application/xml");

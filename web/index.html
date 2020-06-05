@@ -21,7 +21,7 @@
 				<img width="360" height="120" v-bind:src="pL.thumbnail" />
 				<div v-for="p in pL.programList" style="width: 350px; border-radius: 3px; border-bottom: 1px solid; margin: 3px; padding: 2px">
 					<span type="button" class="inst-list-item"
-					onclick="loadProgramXmlOnInstFrame(this)" v-bind:a2w-source="p.source" target="instFrame">{{p.name}}</span>
+					onclick="selectInstrument(this)" v-bind:a2w-source="p.source" v-bind:a2w-sfz="p.sfz">{{p.name}}</span>
 				</div>
 			</div>
 		</div>

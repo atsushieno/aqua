@@ -6,13 +6,13 @@ typedef struct aria2web_tag aria2web;
 /* The value and velocity could be float, but webaudio-controls seems to handle them in integer. */
 typedef void(* aria2web_control_change_callback)(void* context, int cc, int value);
 typedef void(* aria2web_note_callback)(void* context, int key, int velocity);
-typedef void(* aria2web_window_close_callback)(void* context);
+typedef void(* aria2web_change_program_callback)(void* context, const char* sfzFilename);
 
 aria2web* aria2web_create(const char* webLocalFilePath);
 void aria2web_start(aria2web* context, void* parentWindow = nullptr);
 void aria2web_set_control_change_callback(aria2web* a2w, aria2web_control_change_callback callback, void* context);
 void aria2web_set_note_callback(aria2web* a2w, aria2web_note_callback callback, void* context);
-void aria2web_set_window_close_callback(aria2web* a2w, aria2web_window_close_callback callback, void* context);
+void aria2web_set_change_program_callback(aria2web* a2w, aria2web_change_program_callback callback, void* context);
 void aria2web_stop(aria2web* context);
 void* aria2web_get_native_widget(aria2web* instance);
 
@@ -61,8 +61,8 @@ typedef struct aria2web_tag {
 	void* cc_callback_context{nullptr};
 	aria2web_note_callback note_callback{nullptr};
 	void* note_callback_context{nullptr};
-	aria2web_window_close_callback window_close_callback{nullptr};
-	void* window_close_callback_context{nullptr};
+	aria2web_change_program_callback change_program_callback{nullptr};
+	void* change_program_callback_context{nullptr};
 
 	void start(void* parentWindow = nullptr)
 	{
@@ -221,10 +221,10 @@ void aria2web_set_note_callback(aria2web* a2w, aria2web_note_callback callback, 
 	a2w->note_callback_context = callbackContext;
 }
 
-void aria2web_set_window_close_callback(aria2web* a2w, aria2web_window_close_callback callback, void* callbackContext)
+void aria2web_set_change_program_callback(aria2web* a2w, aria2web_change_program_callback callback, void* callbackContext)
 {
-	a2w->window_close_callback = callback;
-	a2w->window_close_callback_context = callbackContext;
+	a2w->change_program_callback = callback;
+	a2w->change_program_callback_context = callbackContext;
 }
 
 void parse_js_two_array_items(const char* req, int* ret1, int* ret2)
@@ -242,12 +242,6 @@ void parse_js_two_array_items(const char* req, int* ret1, int* ret2)
 	*ret2 = 0;
 	for (int i = pos + 1; i < end - 1; i++)
 		*ret2 = *ret2 * 10 + req[i] - '0';
-}
-
-void webview_callback_window_close(const char *seq, const char *req, void *arg) {
-	auto a2w = (aria2web*) arg;
-	if (a2w && a2w->window_close_callback)
-		a2w->window_close_callback(a2w->window_close_callback_context);
 }
 
 void webview_callback_control_change(const char *seq, const char *req, void *arg) {
@@ -278,6 +272,23 @@ void webview_callback_note(const char *seq, const char *req, void *arg) {
 		log_debug(req);
 		log_debug(arg != NULL ? "not null" : "null");
 	}
+}
+
+void webview_callback_change_program(const char *seq, const char *req, void *arg) {
+	auto a2w = (aria2web*) arg;
+	// req = ["filename"] so skip first two bytes and trim last two bytes.
+	auto s = strdup(req);
+	s[strlen(s) - 2] = '\0';
+
+	if (a2w && a2w->control_change_callback)
+		a2w->change_program_callback(a2w->cc_callback_context, s + 2);
+	else {
+		log_debug("change program callback is invoked");
+		log_debug(seq);
+		log_debug(req);
+		log_debug(arg != NULL ? "not null" : "null");
+	}
+	free(s);
 }
 
 void webview_callback_get_local_instruments(const char *seq, const char *req, void *arg) {
@@ -341,6 +352,7 @@ void* a2w_run_webview_loop(void* context) {
 	webview_set_size(w, 1200, 450, WEBVIEW_HINT_NONE);
 	webview_bind(w, "ControlChangeCallback", webview_callback_control_change, context);
 	webview_bind(w, "NoteCallback", webview_callback_note, context);
+	webview_bind(w, "ChangeProgramCallback", webview_callback_change_program, context);
 	webview_bind(w, "GetLocalInstrumentsCallback", webview_callback_get_local_instruments, context);
 
 	webview_dispatch(w, on_dispatch, context);

@@ -84,6 +84,11 @@ void a2wlv2_note_callback(void* context, int key, int velocity)
 	a->write_function(a->controller, ARIA2WEB_LV2_CONTROL_PORT, seq->atom.size + sizeof(LV2_Atom), a->urid_atom_event_transfer, a->atom_buffer);
 }
 
+void a2wlv2_select_sfz_callback(void* context, char* sfzfile)
+{
+	// FIXME: implement. Pass the filename to `patch:writable <@LV2PLUGIN_URI@:sfzfile> ;`
+}
+
 void extui_show_callback(LV2_External_UI_Widget* widget) {
 	auto a2w = (aria2weblv2ui*) (void*) widget;
 
@@ -108,6 +113,7 @@ void* runloop_aria2web_host(void* context)
 		if (n <= 0)
 			return;
 		int v1, v2;
+		char *sfz;
 		switch (bytes[0]) {
 			case 'N':
 				sscanf(bytes + 1, "#%x,#%x", &v1, &v2);
@@ -119,6 +125,9 @@ void* runloop_aria2web_host(void* context)
 				printf("CC EVENT RECEIVED: %d %d\n", v1, v2);
 				a2wlv2_cc_callback(aui, v1, v2);
 				break;
+			case 'P':
+				sfz = bytes + 2;
+				a2wlv2_select_sfz_callback(aui, sfz);
 			default:
 				printf("Unrecognized command sent by aria2web-host: %s\n", bytes);
 		}
