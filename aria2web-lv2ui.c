@@ -37,10 +37,13 @@ typedef struct aria2weblv2ui_tag {
 
 	const char *plugin_uri;
 	char *bundle_path;
+	LV2_URID_Map *urid_map;
+
 	LV2UI_Write_Function write_function;
 	LV2UI_Controller controller;
 	const LV2_Feature *const *features;
-	int urid_atom, urid_frame_time, urid_midi_event, urid_atom_object, urid_patch_set, urid_patch_property, urid_patch_value, urid_atom_path, urid_sfzfile, urid_atom_event_transfer;
+	int urid_atom, urid_frame_time, urid_midi_event, urid_atom_object, urid_patch_set, urid_patch_property,
+		urid_patch_value, urid_atom_urid, urid_atom_path, urid_sfzfile, urid_atom_event_transfer;
 	bool is_visible_now{false};
 
 	char atom_buffer[PATH_MAX + 256];
@@ -103,13 +106,21 @@ void a2wlv2_select_sfz_callback(void* context, const char* sfzfile)
 	seq->atom.type = a->urid_atom_object;
 	auto body = (LV2_Atom_Object_Body*) &seq->body;
 	body->otype = a->urid_patch_set;
-	seq->atom.size = sizeof(LV2_Atom_Event) + sizeof(LV2_Atom_Object) + strlen(sfzfile);
+	auto propBody = (LV2_Atom_Property_Body*) lv2_atom_object_begin(body);
+	propBody->key = a->urid_patch_property;
+	propBody->value.type = a->urid_atom_urid;
+	propBody->value.size = sizeof(LV2_URID);
+	((LV2_Atom_URID *) &propBody->value)->body = a->urid_sfzfile;
 
-	// FIXME: fill right property structure here.
-	auto property = (LV2_Atom_Property *) ((char*) body + sizeof(LV2_Atom_Object_Body));
-	property->atom.type = a->urid_patch_property;
-	property->body.key = a->urid_sfzfile;
-	//strcpy((char*) property->body.value, sfzfile);
+	propBody = lv2_atom_object_next(propBody);
+	propBody->key = a->urid_patch_value;
+	propBody->value.type = a->urid_atom_path;
+	propBody->value.size = strlen(sfzfile);
+	auto filenameDst = ((char*) &propBody->value) + sizeof(LV2_Atom);
+	strncpy(filenameDst, sfzfile, propBody->value.size);
+	filenameDst[propBody->value.size] = '\0';
+
+	seq->atom.size = sizeof(LV2_Atom_Event) + sizeof(LV2_Atom_Object) + strlen(sfzfile);
 
 	a->write_function(a->controller, ARIA2WEB_LV2_CONTROL_PORT, seq->atom.size + sizeof(LV2_Atom), a->urid_atom_event_transfer, a->atom_buffer);
 }
@@ -187,6 +198,7 @@ LV2UI_Handle aria2web_lv2ui_instantiate(
 		auto f = features[i];
 		if (strcmp(f->URI, LV2_URID__map) == 0) {
 			auto urid = (LV2_URID_Map*) f->data;
+			ret->urid_map = urid;
 			ret->urid_atom = urid->map(urid->handle, LV2_ATOM_URI);
 			ret->urid_frame_time = urid->map(urid->handle, LV2_ATOM__frameTime);
 			ret->urid_midi_event = urid->map(urid->handle, LV2_MIDI__MidiEvent);
@@ -194,6 +206,7 @@ LV2UI_Handle aria2web_lv2ui_instantiate(
 			ret->urid_patch_set = urid->map(urid->handle, LV2_PATCH__Set);
 			ret->urid_patch_property = urid->map(urid->handle, LV2_PATCH__property);
 			ret->urid_patch_value = urid->map(urid->handle, LV2_PATCH__value);
+			ret->urid_atom_urid = urid->map(urid->handle, LV2_ATOM__URID);
 			ret->urid_atom_path = urid->map(urid->handle, LV2_ATOM__Path);
 			ret->urid_sfzfile = urid->map(urid->handle, SFIZZ__sfzFile);
 			ret->urid_atom_event_transfer = urid->map(urid->handle, LV2_ATOM__eventTransfer);
