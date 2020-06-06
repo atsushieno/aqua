@@ -115,12 +115,12 @@ void a2wlv2_select_sfz_callback(void* context, const char* sfzfile)
 	propBody = lv2_atom_object_next(propBody);
 	propBody->key = a->urid_patch_value;
 	propBody->value.type = a->urid_atom_path;
-	propBody->value.size = strlen(sfzfile);
+	propBody->value.size = strlen(sfzfile) + 1;
 	auto filenameDst = ((char*) &propBody->value) + sizeof(LV2_Atom);
-	strncpy(filenameDst, sfzfile, propBody->value.size);
-	filenameDst[propBody->value.size] = '\0';
+	strncpy(filenameDst, sfzfile, strlen(sfzfile));
+	filenameDst[strlen(sfzfile)] = '\0';
 
-	seq->atom.size = sizeof(LV2_Atom_Event) + sizeof(LV2_Atom_Object) + strlen(sfzfile);
+	seq->atom.size = sizeof(LV2_Atom_Event) + sizeof(LV2_Atom_Object) + sizeof(LV2_Atom_Property) * 2 + strlen(sfzfile);
 
 	a->write_function(a->controller, ARIA2WEB_LV2_CONTROL_PORT, seq->atom.size + sizeof(LV2_Atom), a->urid_atom_event_transfer, a->atom_buffer);
 }
@@ -163,6 +163,7 @@ void* runloop_aria2web_host(void* context)
 				break;
 			case 'P':
 				sfz = bytes + 2;
+				*((char*)strchr(sfz, '\n')) = '\0';
 				a2wlv2_select_sfz_callback(aui, sfz);
 				break;
 			default:
