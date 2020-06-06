@@ -93,11 +93,13 @@ async function processAriaGuiContent(bankXmlFile, doc, ariaGuiPathAbs, ariaGuiDo
 	var programs = programNodes.map(function(pn) {
 		var bankXmlURL = new URL(bankXmlFile, document.baseURI);
 		var guiURL = new URL(pn.getAttribute("gui"), bankXmlURL);
-		var sfzURL = new URL(pn.querySelector("AriaElement").getAttribute("path"), bankXmlURL);
+		var sfzFile = pn.querySelector("AriaElement").getAttribute("path");
+		if (sfzFile[0] != '/')
+			sfzFile = decodeURI(new URL(sfzFile, bankXmlURL).pathname);
 		return {
 			name : pn.getAttribute("name"),
 			source: guiURL.toString(),
-			sfz: sfzURL.toString()
+			sfz: sfzFile
 		};
 	});
 	var q = doc.documentElement.querySelector("AriaBank");
@@ -110,8 +112,7 @@ async function processAriaGuiContent(bankXmlFile, doc, ariaGuiPathAbs, ariaGuiDo
 }
 
 async function selectInstrument(el) {
-	var sfzURL = el.getAttribute("a2w-sfz");
-	var sfzFile = new URL(sfzURL).pathname;
+	var sfzFile = el.getAttribute("a2w-sfz");
 	var programXmlFile = el.getAttribute("a2w-source");
 
 	Aria2Web.notifyChangeProgram(sfzFile);
