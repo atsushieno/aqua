@@ -29,7 +29,7 @@ aria2web is designed to be used for audio plugin UI. `aria2web-host.c` is a proo
 
 ## lv2 plugin UI
 
-`aria2web-lv2ui` is the LV2 plugin UI implementation. It is to provide a fully-functional SFZ sampler UI using [sfztools/sfizz](https://github.com/sfztools/sfizz/). Though unlike sfizz itself, aria2web [does not support run-time UI loading](https://github.com/atsushieno/aria2web/issues/3) (the HTML pages must be pre-generated) yet.
+`aria2web-lv2ui` is the LV2 plugin UI implementation. It is to provide a fully-functional SFZ sampler UI using [sfztools/sfizz](https://github.com/sfztools/sfizz/). Though unlike sfizz itself, aria2web only supports ARIA bank XML (i.e. no support for `.sfz`) so far.
 
 The actual sfizz integration is ongoing. We use a sfizz submodule, with some uncommitted changes to the codebase, which replaces most of the sfizz URI with aria2web with `sfizz-to-a2w.patch` (It's an ugly hack, but we should use different name and URI to not conflict with sfizz which may be locally installed.)
 
