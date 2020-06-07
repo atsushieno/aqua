@@ -43,7 +43,7 @@ typedef struct aria2weblv2ui_tag {
 	LV2UI_Controller controller;
 	const LV2_Feature *const *features;
 	int urid_atom, urid_frame_time, urid_midi_event, urid_atom_object, urid_patch_set, urid_patch_property,
-		urid_patch_value, urid_atom_urid, urid_atom_path, urid_sfzfile, urid_atom_event_transfer;
+		urid_patch_value, urid_atom_urid, urid_atom_path, urid_sfzfile, urid_voice_message, urid_atom_event_transfer;
 	bool is_visible_now{false};
 
 	char atom_buffer[PATH_MAX + 256];
@@ -51,15 +51,16 @@ typedef struct aria2weblv2ui_tag {
 
 char* fill_atom_message_base(aria2weblv2ui* a, LV2_Atom_Sequence* seq)
 {
-	auto events = (LV2_Atom_Event*) ((char*) seq + sizeof (LV2_Atom_Sequence));
+	seq->atom.type = a->urid_midi_event;
 	seq->body.unit = a->urid_frame_time;
-	auto ev = &events[0];
-	auto msg = ((char*) ev + sizeof (LV2_Atom_Event));
-	ev->time.frames = 0;
-	ev->body.type = a->urid_midi_event;
-	ev->body.size = 3;
-	seq->atom.size = sizeof(LV2_Atom_Event) + 3;
-	seq->atom.type = a->urid_atom_event_transfer;
+	seq->body.pad = 0; // only for cleanness
+
+	auto ev = (LV2_Atom_Event*) (seq + 1);
+	ev->time.frames = 0; // dummy
+	auto msg = (char*) &seq->body; // really?
+
+	seq->atom.size = sizeof(LV2_Atom) + 3; // really? shouldn't this be werapped in LV2_Atom_Event?
+
 	return msg;
 }
 
@@ -153,12 +154,10 @@ void* runloop_aria2web_host(void* context)
 		switch (bytes[0]) {
 			case 'N':
 				sscanf(bytes + 1, "#%x,#%x", &v1, &v2);
-				printf("NOTE EVENT RECEIVED: %d %d\n", v1, v2);
 				a2wlv2_note_callback(aui, v1, v2);
 				break;
 			case 'C':
 				sscanf(bytes + 1, "#%x,#%x", &v1, &v2);
-				printf("CC EVENT RECEIVED: %d %d\n", v1, v2);
 				a2wlv2_cc_callback(aui, v1, v2);
 				break;
 			case 'P':
@@ -210,6 +209,7 @@ LV2UI_Handle aria2web_lv2ui_instantiate(
 			ret->urid_atom_urid = urid->map(urid->handle, LV2_ATOM__URID);
 			ret->urid_atom_path = urid->map(urid->handle, LV2_ATOM__Path);
 			ret->urid_sfzfile = urid->map(urid->handle, SFIZZ__sfzFile);
+			ret->urid_voice_message = urid->map(urid->handle, LV2_MIDI__VoiceMessage);
 			ret->urid_atom_event_transfer = urid->map(urid->handle, LV2_ATOM__eventTransfer);
 			break;
 		}

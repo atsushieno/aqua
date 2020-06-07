@@ -259,12 +259,12 @@ void webview_callback_control_change(const char *seq, const char *req, void *arg
 }
 
 void webview_callback_note(const char *seq, const char *req, void *arg) {
-	int key = 0, vel = 0;
-	parse_js_two_array_items(req, &key, &vel);
+	int state = 0, key = 0;
+	parse_js_two_array_items(req, &state, &key);
 
 	auto a2w = (aria2web*) arg;
 	if (a2w && a2w->note_callback)
-		a2w->note_callback(a2w->note_callback_context, key, vel);
+		a2w->note_callback(a2w->note_callback_context, key, state ? 127 : 0);
 	else {
 		log_debug("note callback is invoked");
 		log_debug(seq);
