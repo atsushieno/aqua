@@ -98,7 +98,31 @@ void a2wlv2_select_sfz_callback(void* context, const char* sfzfile)
 {
 	auto a = (aria2weblv2ui*) context;
 
-	// Maybe it is much easier with forge, but this is the only complicated one so far...
+#if 0
+	// It is based on the code in sfizz that generates port notification,
+	// but this does NOT generate the right Atom buffer.
+	// This does not result in the right atom type at top level,
+	// and I have no further idea on how so.
+	// The entire Atom API reference is far from complete and not reliable.
+	auto seq = (LV2_Atom_Sequence*) a->atom_buffer;
+
+	memset(a->atom_buffer, 0, PATH_MAX + 256);
+	LV2_Atom_Forge forge;
+	lv2_atom_forge_init(&forge, a->urid_map);
+	lv2_atom_forge_set_buffer(&forge, a->atom_buffer, PATH_MAX + 256);
+	LV2_Atom_Forge_Frame seq_frame;
+	lv2_atom_forge_sequence_head(&forge, &seq_frame, 0);
+	lv2_atom_forge_frame_time(&forge, 0);
+	LV2_Atom_Forge_Frame obj_frame;
+	lv2_atom_forge_object(&forge, &obj_frame, 0, a->urid_patch_set);
+	lv2_atom_forge_key(&forge, a->urid_patch_property);
+	lv2_atom_forge_urid(&forge, a->urid_sfzfile);
+	lv2_atom_forge_key(&forge, a->urid_patch_value);
+	lv2_atom_forge_path(&forge, sfzfile, (uint32_t)strlen(sfzfile));
+	lv2_atom_forge_pop(&forge, &obj_frame);
+	lv2_atom_forge_pop(&forge, &seq_frame);
+#else
+	// Since Atom forge API is not documented appropriately, I avoid using it here.
 	//
 	// The event should contain an atom:Object whose body object type
 	// is a patch:Set whose patch:property is sfzfile
@@ -122,6 +146,7 @@ void a2wlv2_select_sfz_callback(void* context, const char* sfzfile)
 	filenameDst[strlen(sfzfile)] = '\0';
 
 	seq->atom.size = sizeof(LV2_Atom_Event) + sizeof(LV2_Atom_Object) + sizeof(LV2_Atom_Property) * 2 + strlen(sfzfile);
+#endif
 
 	a->write_function(a->controller, ARIA2WEB_LV2_CONTROL_PORT, seq->atom.size + sizeof(LV2_Atom), a->urid_atom_event_transfer, a->atom_buffer);
 }
