@@ -22,6 +22,9 @@ extern "C" {
 #ifndef ARIA2WEB_LV2_CONTROL_PORT
 #define ARIA2WEB_LV2_CONTROL_PORT 0 //  0 is sfizz control-in port.
 #endif
+#ifndef ARIA2WEB_LV2_NOTIFY_PORT
+#define ARIA2WEB_LV2_NOTIFY_PORT 1 //  1 is sfizz notification port.
+#endif
 
 typedef struct aria2weblv2ui_tag {
 	// This is tricky, but do NOT move this member from TOP of this struct, as
@@ -42,7 +45,7 @@ typedef struct aria2weblv2ui_tag {
 	LV2UI_Write_Function write_function;
 	LV2UI_Controller controller;
 	const LV2_Feature *const *features;
-	int urid_atom, urid_frame_time, urid_midi_event, urid_atom_object, urid_patch_set, urid_patch_property,
+	int urid_atom, urid_frame_time, urid_midi_event, urid_atom_object, urid_patch_set, urid_patch_get, urid_patch_property,
 		urid_patch_value, urid_atom_urid, urid_atom_path, urid_sfzfile, urid_voice_message, urid_atom_event_transfer;
 	bool is_visible_now{false};
 
@@ -151,6 +154,25 @@ void a2wlv2_select_sfz_callback(void* context, const char* sfzfile)
 	a->write_function(a->controller, ARIA2WEB_LV2_CONTROL_PORT, seq->atom.size + sizeof(LV2_Atom), a->urid_atom_event_transfer, a->atom_buffer);
 }
 
+void send_sfzfile_request(aria2weblv2ui* a)
+{
+	// see a2wlv2_select_sfz_callback(), the same notes on why manually implement atom buffering applies...
+	auto seq = (LV2_Atom_Sequence*) a->atom_buffer;
+	memset(seq, 0, PATH_MAX + 256);
+	seq->atom.type = a->urid_atom_object;
+	auto body = (LV2_Atom_Object_Body*) &seq->body;
+	body->otype = a->urid_patch_get;
+	auto propBody = (LV2_Atom_Property_Body*) lv2_atom_object_begin(body);
+	propBody->key = a->urid_patch_property;
+	propBody->value.type = a->urid_atom_urid;
+	propBody->value.size = sizeof(LV2_URID);
+	((LV2_Atom_URID *) &propBody->value)->body = a->urid_sfzfile;
+
+	seq->atom.size = sizeof(LV2_Atom_Event) + sizeof(LV2_Atom_Object) + sizeof(LV2_Atom_Property);
+
+	a->write_function(a->controller, ARIA2WEB_LV2_CONTROL_PORT, seq->atom.size + sizeof(LV2_Atom), a->urid_atom_event_transfer, a->atom_buffer);
+}
+
 void extui_show_callback(LV2_External_UI_Widget* widget) {
 	auto a2w = (aria2weblv2ui*) (void*) widget;
 
@@ -229,6 +251,7 @@ LV2UI_Handle aria2web_lv2ui_instantiate(
 			ret->urid_midi_event = urid->map(urid->handle, LV2_MIDI__MidiEvent);
 			ret->urid_atom_object = urid->map(urid->handle, LV2_ATOM__Object);
 			ret->urid_patch_set = urid->map(urid->handle, LV2_PATCH__Set);
+			ret->urid_patch_get = urid->map(urid->handle, LV2_PATCH__Get);
 			ret->urid_patch_property = urid->map(urid->handle, LV2_PATCH__property);
 			ret->urid_patch_value = urid->map(urid->handle, LV2_PATCH__value);
 			ret->urid_atom_urid = urid->map(urid->handle, LV2_ATOM__URID);
@@ -248,6 +271,10 @@ LV2UI_Handle aria2web_lv2ui_instantiate(
 		usleep(1000);
 
 	*widget = &ret->extui;
+
+	// should we use Worker? It seems to work though.
+	send_sfzfile_request(ret);
+
 	return ret;
 }
 
@@ -261,12 +288,59 @@ void aria2web_lv2ui_cleanup(LV2UI_Handle ui)
 	free(a2w);
 }
 
+// It is invoked by host when the UI is instantiated. sfizz port 4-8 values will be sent in float protocol.
 void aria2web_lv2ui_port_event(LV2UI_Handle ui, uint32_t port_index, uint32_t buffer_size, uint32_t format, const void *buffer)
 {
-	if (port_index == ARIA2WEB_LV2_CONTROL_PORT) {
-		// FIXME: reflect the value changes back to UI.
-		printf("port event received. buffer size: %d bytes\n", buffer_size);
+	// FIXME: reflect the full value changes back to UI.
+	switch (format) {
+	case 0:
+		printf("aria2web_lv2ui: port event received. port: %d, value: %f\n", port_index, *(float*) buffer);
+		break;
+	default:
+		printf("aria2web_lv2ui: port event received. port: %d, buffer size: %d bytes\n", port_index, buffer_size);
+		if (port_index == ARIA2WEB_LV2_NOTIFY_PORT) {
+			auto a = (aria2weblv2ui*) ui;
+			auto obj = (LV2_Atom_Object *) buffer;
+
+			if (obj->body.otype != a->urid_patch_set) {
+				printf("aria2web_lv2ui: Unknown object of type is notified. Only patch:set is expected: %d\n", obj->body.otype);
+				break;
+			}
+			const LV2_Atom *property = nullptr;
+			lv2_atom_object_get(obj, a->urid_patch_property, &property, 0);
+			if (property == nullptr) {
+				puts("aria2web_lv2ui: missing patch property URI in patch:get");
+				break;
+			} else if (property->type != a->urid_atom_urid) {
+				printf("aria2web_lv2ui: patch property is not URID in patch:get: %d\n", property->type);
+				break;
+			}
+			const uint32_t key = ((const LV2_Atom_URID *) property)->body;
+			const LV2_Atom *atom = nullptr;
+			lv2_atom_object_get(obj, a->urid_patch_value, &atom, 0);
+			if (atom == nullptr) {
+				printf("aria2web_lv2ui: patch value is missing in patch:get\n");
+			} else if (key != a->urid_sfzfile) {
+				printf("aria2web_lv2ui: patch value was not sfzfile in patch:get: %d\n", key);
+			} else {
+				const uint32_t original_atom_size = lv2_atom_total_size((const LV2_Atom *) atom);
+				const uint32_t null_terminated_atom_size = original_atom_size + 1;
+				char atom_buffer[PATH_MAX];
+				memcpy(&atom_buffer, atom, original_atom_size);
+				atom_buffer[original_atom_size] = 0; // Null terminate the string for safety
+
+				std::string cmd{"SFZ "};
+				cmd = cmd + (atom_buffer + sizeof(LV2_Atom)) + '\n';
+				a->a2w_process->write(cmd.c_str());
+			}
+		}
+		break;
 	}
+}
+
+const void * extension_data(const char *uri) {
+	printf("!!! extension_data requested : %s\n", uri);
+	return nullptr;
 }
 
 LV2UI_Descriptor uidesc;
@@ -277,7 +351,7 @@ LV2_SYMBOL_EXPORT const LV2UI_Descriptor* lv2ui_descriptor(uint32_t index)
 	uidesc.instantiate = aria2web_lv2ui_instantiate;
 	uidesc.cleanup = aria2web_lv2ui_cleanup;
 	uidesc.port_event = aria2web_lv2ui_port_event;
-	uidesc.extension_data = nullptr;
+	uidesc.extension_data = extension_data;
 
 	return &uidesc;
 }

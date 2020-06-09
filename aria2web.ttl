@@ -242,4 +242,9 @@ midnam:update a lv2:Feature .
 
 <https://github.com/atsushieno/aria2web#ui>
   a extui:Widget ;
-  ui:binary <aria2web-lv2ui.so> .
+  ui:binary <aria2web-lv2ui.so> ;
+  ui:portNotification [
+        ui:plugin <https://github.com/atsushieno/aria2web> ;
+        lv2:symbol "notify" ;
+        ui:protocol atom:eventTransfer
+  ] .
