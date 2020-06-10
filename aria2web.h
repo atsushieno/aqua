@@ -208,6 +208,25 @@ void aria2web_hide_window(aria2web* a2w)
 	gtk_widget_hide((GtkWidget*) webview_get_window((webview_t) a2w->webview));
 }
 
+typedef struct {
+	aria2web *a2w;
+	const char* sfzfile;
+} load_sfz_ctx;
+
+int do_load_sfz(void* context) {
+	auto ctx = (load_sfz_ctx*) context;
+	auto js = std::string{} + "selectInstrumentFromSfz('" + ctx->sfzfile + "');";
+	webview_eval((webview_t) ctx->a2w->webview, js.c_str());
+	free(ctx);
+	return false;
+}
+
+void aria2web_load_sfz(aria2web* a2w, const char* sfzfile)
+{
+	auto ctx = new load_sfz_ctx{a2w, sfzfile};
+	g_idle_add(do_load_sfz, ctx);
+}
+
 void aria2web_set_control_change_callback(aria2web* a2w, aria2web_control_change_callback callback, void* callbackContext)
 {
 	a2w->control_change_callback = callback;

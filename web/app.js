@@ -119,6 +119,17 @@ async function selectInstrument(el) {
 	loadProgramXmlOnInstFrame(programXmlFile);
 }
 
+async function selectInstrumentFromSfz(sfzfile) {
+	var list = document.getElementById("bank-list");
+	var items = [].slice.call(list.querySelectorAll(".inst-list-item"));
+	items.map(function(el) {
+		if (el.getAttribute("a2w-sfz") == sfzfile) {
+			loadProgramXmlOnInstFrame(el.getAttribute("a2w-source"));
+			return;
+		}
+	});
+}
+
 async function loadProgramXmlOnInstFrame(programXmlFile) {
 
 	var programXmlContent = await readFileBlobAsText(programXmlFile);

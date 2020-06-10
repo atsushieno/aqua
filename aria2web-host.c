@@ -95,6 +95,8 @@ int main(int argc, char** argv) {
 			aria2web_hide_window(a2w);
 		else if (strcmp(input, "show") == 0)
 			aria2web_show_window(a2w);
+		else if (strncmp(input, "SFZ ", 4) == 0)
+			aria2web_load_sfz(a2w, input + 4);
 		else
 			printf("#aria2web-host: unknown user input (after removing CR/LF): %s\n", input);
 	}
