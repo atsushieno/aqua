@@ -41,10 +41,31 @@ void* a2w_run_webview_loop(void* context);
 
 void log_debug(const char* s) { puts(s); }
 
+static int confirmed_port = -1;
+
 int a2w_get_http_server_port_number()
 {
-	/* FIXME: allocate it dynamically. */
-	return 37564;
+	if (confirmed_port > 0)
+		return confirmed_port;
+
+	int port = 37564;
+	while(1) {
+		/* allocate it dynamically, if default port is not available. Note that we might instiantiate it more than once. */
+		int sfd;
+		sfd = socket(AF_INET, SOCK_STREAM, 0);
+		assert(sfd != -1);
+		struct sockaddr_in addr;
+		memset(&addr, 0, sizeof(struct sockaddr_in));
+		addr.sin_family = AF_INET;
+		addr.sin_port = port;
+		if (bind(sfd, (struct sockaddr *) &addr, sizeof(struct sockaddr_in)) != -1) {
+			close(sfd);
+			confirmed_port = port;
+			printf("# aria2web using port %d\n", port);
+			return port;
+		}
+		port = 49152 + random() % (0xFFFF - 49152);
+    }
 }
 
 typedef struct aria2web_tag {
@@ -195,7 +216,7 @@ void handle_request(struct http_request_s* request) {
 
 void* a2w_run_http_server(void* context) {
 	auto a2w = (aria2web*) context;
-	struct http_server_s* server = http_server_init(37564, handle_request);
+	struct http_server_s* server = http_server_init(a2w_get_http_server_port_number(), handle_request);
 	http_server_set_userdata(server, a2w);
 	a2w->http_server_started = TRUE;
 	http_server_listen(server);
