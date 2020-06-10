@@ -62,6 +62,7 @@ int a2w_get_http_server_port_number()
 			close(sfd);
 			confirmed_port = port;
 			printf("# aria2web using port %d\n", port);
+			fflush(stdout);
 			return port;
 		}
 		port = 49152 + random() % (0xFFFF - 49152);
@@ -300,7 +301,7 @@ void webview_callback_initialized(const char *seq, const char *req, void *arg) {
 	if (a2w && a2w->initialized_callback)
 		a2w->initialized_callback(a2w->initialized_callback_context);
 	else {
-		log_debug("aria2web.h: 'initialized' callback is invoked");
+		log_debug("# aria2web.h: 'initialized' callback is invoked");
 	}
 }
 
@@ -312,7 +313,7 @@ void webview_callback_control_change(const char *seq, const char *req, void *arg
 	if (a2w && a2w->control_change_callback)
 		a2w->control_change_callback(a2w->cc_callback_context, cc, val);
 	else {
-		log_debug("aria2web.h: control change callback is invoked");
+		log_debug("# aria2web.h: control change callback is invoked");
 		log_debug(seq);
 		log_debug(req);
 		log_debug(arg != NULL ? "not null" : "null");
@@ -327,7 +328,7 @@ void webview_callback_note(const char *seq, const char *req, void *arg) {
 	if (a2w && a2w->note_callback)
 		a2w->note_callback(a2w->note_callback_context, key, state ? 127 : 0);
 	else {
-		log_debug("aria2web.h: note callback is invoked");
+		log_debug("# aria2web.h: note callback is invoked");
 		log_debug(seq);
 		log_debug(req);
 		log_debug(arg != NULL ? "not null" : "null");
@@ -343,7 +344,7 @@ void webview_callback_change_program(const char *seq, const char *req, void *arg
 	if (a2w && a2w->control_change_callback)
 		a2w->change_program_callback(a2w->cc_callback_context, s + 2);
 	else {
-		log_debug("aria2web.h: change program callback is invoked");
+		log_debug("# aria2web.h: change program callback is invoked");
 		log_debug(seq);
 		log_debug(req);
 		log_debug(arg != NULL ? "not null" : "null");
@@ -382,9 +383,10 @@ void webview_callback_get_local_instruments(const char *seq, const char *req, vo
 					*strrchr(buf, '/') = '\0';
 				a2w->local_instrument_dirs->emplace_back(std::string{buf});
 			}
-		}
-		else
+		} else {
 			printf("#aria2web.h: failed to load config file %s...\n", aria2web_config_file.c_str());
+			fflush(stdout);
+		}
 	}
 	std::string cfgJS{"Aria2Web.Config={BankXmlFiles: [" + fileList + "]}; onLocalBankFilesUpdated();"};
 
