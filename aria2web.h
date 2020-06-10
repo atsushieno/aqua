@@ -215,7 +215,20 @@ typedef struct {
 
 int do_load_sfz(void* context) {
 	auto ctx = (load_sfz_ctx*) context;
-	auto js = std::string{} + "selectInstrumentFromSfz('" + ctx->sfzfile + "');";
+	/* It's a complicated Javascript piece of code, so I'd expand it here for readability...
+
+	  if (typeof(a2w_sleep) == 'undefined')
+	    a2w_sleep = async function(ms) {
+	      return new Promise(r => setTimeout(r, ms));
+	    };
+	  async function a2w_cb_load_sfz(sfz) {
+	    while(typeof(loadInstrumentFromSfz) == 'undefined')
+	      await a2w_sleep(100);
+	    loadInstrumentFromSfz(sfz);
+	  }
+	  a2w_cb_load_sfz('" + ctx->sfzfile + "');
+	*/
+	auto js = std::string{} + "if (typeof(a2w_sleep) == 'undefined') a2w_sleep = async function(ms) { return new Promise(r => setTimeout(r, ms)); }; async function a2w_cb_load_sfz(sfz) { while(typeof(loadInstrumentFromSfz) == 'undefined') await a2w_sleep(100); loadInstrumentFromSfz(sfz); } a2w_cb_load_sfz('" + ctx->sfzfile + "');";
 	webview_eval((webview_t) ctx->a2w->webview, js.c_str());
 	free(ctx);
 	return false;

@@ -119,12 +119,14 @@ async function selectInstrument(el) {
 	loadProgramXmlOnInstFrame(programXmlFile);
 }
 
-async function selectInstrumentFromSfz(sfzfile) {
+async function loadInstrumentFromSfz(sfzfile) {
 	var list = document.getElementById("bank-list");
 	var items = [].slice.call(list.querySelectorAll(".inst-list-item"));
 	items.map(function(el) {
-		if (el.getAttribute("a2w-sfz") == sfzfile) {
-			loadProgramXmlOnInstFrame(el.getAttribute("a2w-source"));
+		if (el.getAttribute("a2w-sfz") === sfzfile) {
+			setTimeout(function() {
+				loadProgramXmlOnInstFrame(el.getAttribute("a2w-source"));
+			}, 1000);
 			return;
 		}
 	});
