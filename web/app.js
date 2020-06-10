@@ -49,14 +49,14 @@ function onLocalBankFilesUpdated() {
 		var bankXmlContent = await readFileBlobAsText(bankXmlFile);
 		var programList = await processBankXmlContent(bankXmlFile, bankXmlContent);
 		results.push(programList);
-		if (results.length == bankXmlFiles.length)
+		if (results.length == bankXmlFiles.length) {
 			app = new Vue({
 				el: '#app',
-				data: { programList: results }
+				data: {programList: results}
 			});
+			Aria2Web.notifyInitialized();
+		}
 	});
-
-	Aria2Web.notifyInitialized();
 }
 
 async function onChooseBankDirectoryCommand() {
