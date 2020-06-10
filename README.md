@@ -15,9 +15,22 @@ There are handful of great instruments with ARIA UI. In this PoC repository we i
 - [UI 1912](https://unreal-instruments.wixsite.com/unreal-instruments/1912)
 - [karoryfer-bigcat.cello](https://github.com/sfzinstruments/karoryfer-bigcat.cello)
 
-## Building
+## Building and Using
 
 See "LV2 Plugin UI" section.
+
+To use it as a local LV2 plugin, you would need an extra configuration file under `~/.config/aria2web.config` file. It is not really a config file so far, just stores list of bank XML files. For example, mine is:
+
+```
+/home/atsushi/soundfonts/sfz/karoryfer.bear-sax-master/Bear_Sax.bank.xml
+/home/atsushi/soundfonts/sfz/karoryfer-bigcat.cello-master/Karoryfer x bigcat cello.bank.xml
+/home/atsushi/soundfonts/sfz/karoryfer.caveman-cosmonaut-master/Caveman Cosmonaut.bank.xml
+/home/atsushi/soundfonts/sfz/karoryfer.string-cyborgs-master/String Cyborgs.bank.xml
+/home/atsushi/soundfonts/sfz/karoryfer.weresax-master/Weresax.bank.xml
+/home/atsushi/soundfonts/sfz/UI_1912/1912.bank.xml
+/home/atsushi/soundfonts/sfz/UI_METAL-GTX/METAL-GTX.bank.xml
+/home/atsushi/soundfonts/sfz/UI_Standard_Guitar/Standard Guitar.bank.xml
+```
 
 ## Rationale
 
