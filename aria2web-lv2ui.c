@@ -6,6 +6,7 @@
 #include <lv2/lv2plug.in/ns/ext/midi/midi.h>
 #include <lv2/lv2plug.in/ns/ext/patch/patch.h>
 #include <lv2/lv2plug.in/ns/ext/urid/urid.h>
+#include <lv2/lv2plug.in/ns/ext/log/log.h>
 #define HTTPSERVER_IMPL
 #define ARIA2WEB_IMPL
 #include "lv2_external_ui.h"
@@ -41,6 +42,7 @@ typedef struct aria2weblv2ui_tag {
 	const char *plugin_uri;
 	char *bundle_path;
 	LV2_URID_Map *urid_map;
+	LV2_Log_Log *log;
 
 	LV2UI_Write_Function write_function;
 	LV2UI_Controller controller;
@@ -222,11 +224,24 @@ void* runloop_aria2web_host(void* context)
 				a2wlv2_select_sfz_callback(aui, sfz);
 				break;
 			default:
-				printf("Unrecognized command sent by aria2web-host: %s\n", bytes);
+				aui->log->printf(aui->log, LV2_LOG__Warning, "Unrecognized command sent by aria2web-host: %s\n", bytes);
 		}
 	}, nullptr, true));
 
 	return nullptr;
+}
+
+int a2w_lv2ui_default_vprintf(LV2_Log_Handle handle, LV2_URID type, const char *fmt, va_list ap)
+{
+	vprintf(fmt, ap);
+}
+
+int a2w_lv2ui_default_printf(LV2_Log_Handle handle, LV2_URID type, const char *fmt,...)
+{
+	va_list args;
+	va_start(args, fmt);
+	a2w_lv2ui_default_vprintf(handle, type, fmt, args);
+	va_end(args);
 }
 
 LV2UI_Handle aria2web_lv2ui_instantiate(
@@ -238,7 +253,10 @@ LV2UI_Handle aria2web_lv2ui_instantiate(
 	LV2UI_Widget *widget,
 	const LV2_Feature *const *features)
 {
+	static LV2_Log_Log default_log{nullptr, a2w_lv2ui_default_printf, a2w_lv2ui_default_vprintf};
+
 	auto ret = new aria2weblv2ui();
+	ret->log = &default_log;
 	ret->plugin_uri = plugin_uri;
 	ret->bundle_path = strdup(bundle_path);
 	ret->write_function = write_function;
@@ -252,6 +270,8 @@ LV2UI_Handle aria2web_lv2ui_instantiate(
 
 	for (int i = 0; features[i]; i++) {
 		auto f = features[i];
+		if (strcmp(f->URI, LV2_LOG__log) == 0)
+			ret->log = (LV2_Log_Log*) f->data;
 		if (strcmp(f->URI, LV2_URID__map) == 0) {
 			auto urid = (LV2_URID_Map*) f->data;
 			ret->urid_map = urid;
@@ -286,7 +306,6 @@ LV2UI_Handle aria2web_lv2ui_instantiate(
 
 void aria2web_lv2ui_cleanup(LV2UI_Handle ui)
 {
-	puts("aria2web_lv2ui_cleanup");
 	auto a2w = (aria2weblv2ui*) ui;
 	a2w->a2w_process->kill();
 	a2w->a2w_process->write("quit\n");
@@ -297,37 +316,36 @@ void aria2web_lv2ui_cleanup(LV2UI_Handle ui)
 // It is invoked by host when the UI is instantiated. sfizz port 4-8 values will be sent in float protocol.
 void aria2web_lv2ui_port_event(LV2UI_Handle ui, uint32_t port_index, uint32_t buffer_size, uint32_t format, const void *buffer)
 {
+	auto a = (aria2weblv2ui*) ui;
 	// FIXME: reflect the full value changes back to UI.
 	switch (format) {
 	case 0:
-		printf("aria2web_lv2ui: port event received. port: %d, value: %f\n", port_index, *(float*) buffer);
+		a->log->printf(a->log, LV2_LOG__Note, "aria2web_lv2ui: port event received. port: %d, value: %f\n", port_index, *(float*) buffer);
 		break;
 	default:
-		printf("aria2web_lv2ui: port event received. port: %d, buffer size: %d bytes\n", port_index, buffer_size);
 		if (port_index == ARIA2WEB_LV2_NOTIFY_PORT) {
-			auto a = (aria2weblv2ui*) ui;
 			auto obj = (LV2_Atom_Object *) buffer;
 
 			if (obj->body.otype != a->urid_patch_set) {
-				printf("aria2web_lv2ui: Unknown object of type is notified. Only patch:set is expected: %d\n", obj->body.otype);
+				a->log->printf(a->log, LV2_LOG__Warning, "aria2web_lv2ui: Unknown object of type is notified. Only patch:set is expected: %d\n", obj->body.otype);
 				break;
 			}
 			const LV2_Atom *property = nullptr;
 			lv2_atom_object_get(obj, a->urid_patch_property, &property, 0);
 			if (property == nullptr) {
-				puts("aria2web_lv2ui: missing patch property URI in patch:get");
+				a->log->printf(a->log, LV2_LOG__Warning, "aria2web_lv2ui: missing patch property URI in patch:get");
 				break;
 			} else if (property->type != a->urid_atom_urid) {
-				printf("aria2web_lv2ui: patch property is not URID in patch:get: %d\n", property->type);
+				a->log->printf(a->log, LV2_LOG__Error, "aria2web_lv2ui: patch property is not URID in patch:get: %d\n", property->type);
 				break;
 			}
 			const uint32_t key = ((const LV2_Atom_URID *) property)->body;
 			const LV2_Atom *atom = nullptr;
 			lv2_atom_object_get(obj, a->urid_patch_value, &atom, 0);
 			if (atom == nullptr) {
-				printf("aria2web_lv2ui: patch value is missing in patch:get\n");
+				a->log->printf(a->log, LV2_LOG__Error, "aria2web_lv2ui: patch value is missing in patch:get\n");
 			} else if (key != a->urid_sfzfile) {
-				printf("aria2web_lv2ui: patch value was not sfzfile in patch:get: %d\n", key);
+				a->log->printf(a->log, LV2_LOG__Warning, "aria2web_lv2ui: patch value was not sfzfile in patch:get: %d\n", key);
 			} else {
 				const uint32_t original_atom_size = lv2_atom_total_size((const LV2_Atom *) atom);
 				const uint32_t null_terminated_atom_size = original_atom_size + 1;
@@ -340,24 +358,25 @@ void aria2web_lv2ui_port_event(LV2UI_Handle ui, uint32_t port_index, uint32_t bu
 				a->a2w_process->write(cmd.c_str());
 			}
 		}
+		else
+			a->log->printf(a->log, LV2_LOG__Warning, "aria2web_lv2ui: unrecognized port event received. port: %d, buffer size: %d bytes\n", port_index, buffer_size);
 		break;
 	}
 }
 
 const void * extension_data(const char *uri) {
-	printf("!!! extension_data requested : %s\n", uri);
+	//printf("!!! extension_data requested : %s\n", uri);
 	return nullptr;
 }
 
-LV2UI_Descriptor uidesc;
-
 LV2_SYMBOL_EXPORT const LV2UI_Descriptor* lv2ui_descriptor(uint32_t index)
 {
-	uidesc.URI = "https://github.com/atsushieno/aria2web#ui";
-	uidesc.instantiate = aria2web_lv2ui_instantiate;
-	uidesc.cleanup = aria2web_lv2ui_cleanup;
-	uidesc.port_event = aria2web_lv2ui_port_event;
-	uidesc.extension_data = extension_data;
+	static const LV2UI_Descriptor uidesc{
+		"https://github.com/atsushieno/aria2web#ui",
+		aria2web_lv2ui_instantiate,
+		aria2web_lv2ui_cleanup,
+		aria2web_lv2ui_port_event,
+		extension_data};
 
 	return &uidesc;
 }
