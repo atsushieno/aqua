@@ -4,5 +4,4 @@
 <https://github.com/atsushieno/aria2web>
   a lv2:Plugin ;
   lv2:binary <sfizz.so> ;
-  rdfs:seeAlso <sfizz.ttl> ;
   rdfs:seeAlso <aria2web.ttl> .

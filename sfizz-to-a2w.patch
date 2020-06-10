@@ -1,5 +1,5 @@
 diff --git a/lv2/sfizz.c b/lv2/sfizz.c
-index 67501d85..5b8a99fb 100644
+index 89529d09..83aabf4f 100644
 --- a/lv2/sfizz.c
 +++ b/lv2/sfizz.c
 @@ -58,15 +58,15 @@
@@ -25,4 +25,3 @@ index 67501d85..5b8a99fb 100644
  
  #define CHANNEL_MASK 0x0F
  #define MIDI_CHANNEL(byte) (byte & CHANNEL_MASK)
-

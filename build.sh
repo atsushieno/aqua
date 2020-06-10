@@ -29,8 +29,8 @@ if [ ! -d sfizz-aria2web/dist ] ; then
   mkdir sfizz-aria2web ;
   cd sfizz-aria2web ;
   CXX=$_CXX CC=$_CC cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=`pwd`/dist ../external/sfizz ;
-  make ;
-  make install ;
+  make || exit 1 ;
+  make install || exit 1 ;
   cd .. ;
 fi
 
