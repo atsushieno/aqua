@@ -30,8 +30,8 @@ async function onBodyLoad() {
 }
 
 async function loadBankXmlFileList() {
-	if (typeof (GetLocalInstrumentsCallback) != "undefined") {
-		GetLocalInstrumentsCallback();
+	if (typeof (Aria2WebGetLocalInstrumentsCallback) != "undefined") {
+		Aria2WebGetLocalInstrumentsCallback();
 	} else {
 		console.log("No local instruments are found. Showing demo UI");
 		Aria2Web.Config.BankXmlFiles = PresetBankXmlFiles;
@@ -55,6 +55,8 @@ function onLocalBankFilesUpdated() {
 				data: { programList: results }
 			});
 	});
+
+	Aria2Web.notifyInitialized();
 }
 
 async function onChooseBankDirectoryCommand() {
@@ -122,14 +124,16 @@ async function selectInstrument(el) {
 async function loadInstrumentFromSfz(sfzfile) {
 	var list = document.getElementById("bank-list");
 	var items = [].slice.call(list.querySelectorAll(".inst-list-item"));
-	items.map(function(el) {
+	for (i = 0; i < items.length; i++) {
+		var el = items[i];
 		if (el.getAttribute("a2w-sfz") === sfzfile) {
 			setTimeout(function() {
 				loadProgramXmlOnInstFrame(el.getAttribute("a2w-source"));
 			}, 1000);
 			return;
 		}
-	});
+	}
+	console.log("Unrecognized SFZ file was passed: " + sfzfile);
 }
 
 async function loadProgramXmlOnInstFrame(programXmlFile) {

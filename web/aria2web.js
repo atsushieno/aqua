@@ -2,20 +2,26 @@ Aria2Web = {};
 Aria2Web.Config = {};
 Aria2Web.Config.BankXmlFiles = [];
 
-if (typeof(ControlChangeCallback) != "undefined")
-	Aria2Web.notifyControlChange = ControlChangeCallback;
+if (typeof(Aria2WebInitializedCallback) != "undefined")
+	Aria2Web.notifyInitialized = Aria2WebInitializedCallback;
+else
+	Aria2Web.notifyInitialized = function() {
+		console.log("aria2web JS initialized");
+	};
+if (typeof(Aria2WebControlChangeCallback) != "undefined")
+	Aria2Web.notifyControlChange = Aria2WebControlChangeCallback;
 else
 	Aria2Web.notifyControlChange = function(controlId, value) {
 		console.log("change event CC: " + controlId + " = " + value);
 	};
-if (typeof(NoteCallback) != "undefined")
-	Aria2Web.notifyNoteMessage = NoteCallback;
+if (typeof(Aria2WebNoteCallback) != "undefined")
+	Aria2Web.notifyNoteMessage = Aria2WebNoteCallback;
 else
 	Aria2Web.notifyNoteMessage = function(state, key) {
 		console.log("note event: " + state + " " + key);
 	};
-if (typeof(ChangeProgramCallback) != "undefined")
-	Aria2Web.notifyChangeProgram = ChangeProgramCallback;
+if (typeof(Aria2WebChangeProgramCallback) != "undefined")
+	Aria2Web.notifyChangeProgram = Aria2WebChangeProgramCallback;
 else
 	Aria2Web.notifyChangeProgram = function(sfz) {
 		console.log("change program event: " + sfz);

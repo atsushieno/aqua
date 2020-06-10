@@ -12,6 +12,16 @@ bool standalone{TRUE};
   It must call fflush(stdout) every time so that the plugin UI module can process an entire line.
  */
 
+void initialized_callback(void* context)
+{
+	if (standalone)
+		printf("'Initizlied' callback\n");
+	else {
+		printf("I\n");
+		fflush(stdout);
+	}
+}
+
 void control_change_callback(void* context, int cc, int value)
 {
 	if (standalone)
@@ -68,6 +78,7 @@ int main(int argc, char** argv) {
 	fflush(stdout);
 
 	auto a2w = aria2web_create(path.c_str());
+	aria2web_set_initialized_callback(a2w, initialized_callback, nullptr);
 	aria2web_set_control_change_callback(a2w, control_change_callback, nullptr);
 	aria2web_set_note_callback(a2w, note_callback, nullptr);
 	aria2web_set_change_program_callback(a2w, change_program_callback, nullptr);

@@ -4,12 +4,14 @@
 
 typedef struct aria2web_tag aria2web;
 /* The value and velocity could be float, but webaudio-controls seems to handle them in integer. */
+typedef void(* aria2web_initialized_callback)(void* context);
 typedef void(* aria2web_control_change_callback)(void* context, int cc, int value);
 typedef void(* aria2web_note_callback)(void* context, int key, int velocity);
 typedef void(* aria2web_change_program_callback)(void* context, const char* sfzFilename);
 
 aria2web* aria2web_create(const char* webLocalFilePath);
 void aria2web_start(aria2web* context, void* parentWindow = nullptr);
+void aria2web_set_initialized_callback(aria2web* a2w, aria2web_initialized_callback callback, void* context);
 void aria2web_set_control_change_callback(aria2web* a2w, aria2web_control_change_callback callback, void* context);
 void aria2web_set_note_callback(aria2web* a2w, aria2web_note_callback callback, void* context);
 void aria2web_set_change_program_callback(aria2web* a2w, aria2web_change_program_callback callback, void* context);
@@ -56,6 +58,8 @@ typedef struct aria2web_tag {
 	bool http_server_started{false};
 	bool webview_ready{false};
 	void* component_ref{nullptr};
+	aria2web_initialized_callback initialized_callback{nullptr};
+	void* initialized_callback_context{nullptr};
 	aria2web_control_change_callback control_change_callback{nullptr};
 	void* cc_callback_context{nullptr};
 	aria2web_note_callback note_callback{nullptr};
@@ -215,20 +219,9 @@ typedef struct {
 
 int do_load_sfz(void* context) {
 	auto ctx = (load_sfz_ctx*) context;
-	/* It's a complicated Javascript piece of code, so I'd expand it here for readability...
-
-	  if (typeof(a2w_sleep) == 'undefined')
-	    a2w_sleep = async function(ms) {
-	      return new Promise(r => setTimeout(r, ms));
-	    };
-	  async function a2w_cb_load_sfz(sfz) {
-	    while(typeof(loadInstrumentFromSfz) == 'undefined')
-	      await a2w_sleep(100);
-	    loadInstrumentFromSfz(sfz);
-	  }
-	  a2w_cb_load_sfz('" + ctx->sfzfile + "');
-	*/
-	auto js = std::string{} + "if (typeof(a2w_sleep) == 'undefined') a2w_sleep = async function(ms) { return new Promise(r => setTimeout(r, ms)); }; async function a2w_cb_load_sfz(sfz) { while(typeof(loadInstrumentFromSfz) == 'undefined') await a2w_sleep(100); loadInstrumentFromSfz(sfz); } a2w_cb_load_sfz('" + ctx->sfzfile + "');";
+	auto js_log = std::string{} + "console.log('aria2web.h: loading UI via SFZ by host request: " + ctx->sfzfile + "');";
+	webview_eval((webview_t) ctx->a2w->webview, js_log.c_str());
+	auto js = std::string{} + "loadInstrumentFromSfz('" + ctx->sfzfile + "');";
 	webview_eval((webview_t) ctx->a2w->webview, js.c_str());
 	free(ctx);
 	return false;
@@ -238,6 +231,12 @@ void aria2web_load_sfz(aria2web* a2w, const char* sfzfile)
 {
 	auto ctx = new load_sfz_ctx{a2w, sfzfile};
 	g_idle_add(do_load_sfz, ctx);
+}
+
+void aria2web_set_initialized_callback(aria2web* a2w, aria2web_initialized_callback callback, void* callbackContext)
+{
+	a2w->initialized_callback = callback;
+	a2w->initialized_callback_context = callbackContext;
 }
 
 void aria2web_set_control_change_callback(aria2web* a2w, aria2web_control_change_callback callback, void* callbackContext)
@@ -275,6 +274,15 @@ void parse_js_two_array_items(const char* req, int* ret1, int* ret2)
 		*ret2 = *ret2 * 10 + req[i] - '0';
 }
 
+void webview_callback_initialized(const char *seq, const char *req, void *arg) {
+	auto a2w = (aria2web*) arg;
+	if (a2w && a2w->initialized_callback)
+		a2w->initialized_callback(a2w->initialized_callback_context);
+	else {
+		log_debug("aria2web.h: 'initialized' callback is invoked");
+	}
+}
+
 void webview_callback_control_change(const char *seq, const char *req, void *arg) {
 	int cc = 0, val = 0;
 	parse_js_two_array_items(req, &cc, &val);
@@ -283,7 +291,7 @@ void webview_callback_control_change(const char *seq, const char *req, void *arg
 	if (a2w && a2w->control_change_callback)
 		a2w->control_change_callback(a2w->cc_callback_context, cc, val);
 	else {
-		log_debug("control change callback is invoked");
+		log_debug("aria2web.h: control change callback is invoked");
 		log_debug(seq);
 		log_debug(req);
 		log_debug(arg != NULL ? "not null" : "null");
@@ -298,7 +306,7 @@ void webview_callback_note(const char *seq, const char *req, void *arg) {
 	if (a2w && a2w->note_callback)
 		a2w->note_callback(a2w->note_callback_context, key, state ? 127 : 0);
 	else {
-		log_debug("note callback is invoked");
+		log_debug("aria2web.h: note callback is invoked");
 		log_debug(seq);
 		log_debug(req);
 		log_debug(arg != NULL ? "not null" : "null");
@@ -314,7 +322,7 @@ void webview_callback_change_program(const char *seq, const char *req, void *arg
 	if (a2w && a2w->control_change_callback)
 		a2w->change_program_callback(a2w->cc_callback_context, s + 2);
 	else {
-		log_debug("change program callback is invoked");
+		log_debug("aria2web.h: change program callback is invoked");
 		log_debug(seq);
 		log_debug(req);
 		log_debug(arg != NULL ? "not null" : "null");
@@ -355,7 +363,7 @@ void webview_callback_get_local_instruments(const char *seq, const char *req, vo
 			}
 		}
 		else
-			printf("#failed to load config file %s...\n", aria2web_config_file.c_str());
+			printf("#aria2web.h: failed to load config file %s...\n", aria2web_config_file.c_str());
 	}
 	std::string cfgJS{"Aria2Web.Config={BankXmlFiles: [" + fileList + "]}; onLocalBankFilesUpdated();"};
 
@@ -381,10 +389,11 @@ void* a2w_run_webview_loop(void* context) {
 	void* w = a2w->webview = webview_create(true, nullptr);
 	webview_set_title(w, "Aria2Web embedded example");
 	webview_set_size(w, 1200, 450, WEBVIEW_HINT_NONE);
-	webview_bind(w, "ControlChangeCallback", webview_callback_control_change, context);
-	webview_bind(w, "NoteCallback", webview_callback_note, context);
-	webview_bind(w, "ChangeProgramCallback", webview_callback_change_program, context);
-	webview_bind(w, "GetLocalInstrumentsCallback", webview_callback_get_local_instruments, context);
+	webview_bind(w, "Aria2WebInitializedCallback", webview_callback_initialized, context);
+	webview_bind(w, "Aria2WebControlChangeCallback", webview_callback_control_change, context);
+	webview_bind(w, "Aria2WebNoteCallback", webview_callback_note, context);
+	webview_bind(w, "Aria2WebChangeProgramCallback", webview_callback_change_program, context);
+	webview_bind(w, "Aria2WebGetLocalInstrumentsCallback", webview_callback_get_local_instruments, context);
 
 	webview_dispatch(w, on_dispatch, context);
 	webview_navigate(w, url);

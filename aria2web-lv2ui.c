@@ -189,6 +189,12 @@ void extui_run_callback(LV2_External_UI_Widget* widget) {
 	// nothing to do here...
 }
 
+a2wlv2_initialized_callback(void* context)
+{
+	// should we use Worker? It seems to work though.
+	send_sfzfile_request((aria2weblv2ui*) context);
+}
+
 void* runloop_aria2web_host(void* context)
 {
 	auto aui = (aria2weblv2ui*) context;
@@ -199,6 +205,9 @@ void* runloop_aria2web_host(void* context)
 		int v1, v2;
 		const char *sfz;
 		switch (bytes[0]) {
+			case 'I':
+				a2wlv2_initialized_callback(aui);
+				break;
 			case 'N':
 				sscanf(bytes + 1, "#%x,#%x", &v1, &v2);
 				a2wlv2_note_callback(aui, v1, v2);
@@ -271,9 +280,6 @@ LV2UI_Handle aria2web_lv2ui_instantiate(
 		usleep(1000);
 
 	*widget = &ret->extui;
-
-	// should we use Worker? It seems to work though.
-	send_sfzfile_request(ret);
 
 	return ret;
 }
