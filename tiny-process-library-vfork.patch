@@ -1,0 +1,13 @@
+diff --git a/process_unix.cpp b/process_unix.cpp
+index 2c13ab6..0b4dffa 100644
+--- a/process_unix.cpp
++++ b/process_unix.cpp
+@@ -53,7 +53,7 @@ Process::id_type Process::open(const std::function<void()> &function) noexcept {
+     return -1;
+   }
+ 
+-  id_type pid = fork();
++  id_type pid = vfork();
+ 
+   if(pid < 0) {
+     if(stdin_fd) {

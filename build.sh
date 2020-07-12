@@ -3,6 +3,10 @@
 _CC=gcc
 _CXX=g++
 
+if ! [ -f external/tiny-process-library/patch.stamp ] ; then
+cd external/tiny-process-library && patch -i ../../tiny-process-library-vfork.patch -p1 && touch patch.stamp && cd ../.. || exit 1
+fi
+
 $_CXX -g -fpermissive -I external/webview/ -I external/httpserver.h/ \
 	aria2web-host.c \
 	`pkg-config --cflags --libs gtk+-3.0 webkit2gtk-4.0` \
