@@ -76,27 +76,26 @@ if(window.customElements){
     useMidi:0,
     midilearn:0,
     mididump:0,
-    outline:0,
+    outline:null,
     knobSrc:null,
-    knobSprites:0,
-    knobWidth:0,
-    knobHeight:0,
-    knobDiameter:64,
+    knobSprites:null,
+    knobWidth:null,
+    knobHeight:null,
+    knobDiameter:null,
     knobColors:"#e00;#000;#000",
-    sliderSrc:null,
     sliderKnobsrc:null,
-    sliderWidth:0,
-    sliderHeight:0,
-    sliderKnobwidth:0,
-    sliderKnobheight:0,
-    sliderDitchlength:0,
+    sliderWidth:null,
+    sliderHeight:null,
+    sliderKnobWidth:null,
+    sliderKnobHeight:null,
+    sliderDitchlength:null,
     sliderColors:"#e00;#000;#fcc",
-    switchWidth:0,
-    switchHeight:0,
-    switchDiameter:24,
+    switchWidth:null,
+    switchHeight:null,
+    switchDiameter:null,
     switchColors:"#e00;#000;#fcc",
     paramWidth:32,
-    paramHeight:16,
+    paramHeight:20,
     paramColors:"#fff;#000",
     valuetip:0,
     xypadColors:"#e00;#000;#fcc",
@@ -151,6 +150,22 @@ if(window.customElements){
   border-top: 6px solid #eee;
 }
 `;
+      this.onblur=()=>{
+        this.elem.style.outline="none";
+      }
+      this.onfocus=()=>{
+        switch(this.outline){
+        case null:
+        case "0":
+          this.elem.style.outline="none";
+          break;
+        case "1":
+          this.elem.style.outline="1px solid #ccc";
+          break;
+        default:
+          this.elem.style.outline=this.outline;
+        }
+      }
     }
     sendEvent(ev){
       let event;
@@ -160,7 +175,7 @@ if(window.customElements){
     }
     getAttr(n,def){
       let v=this.getAttribute(n);
-      if(v==""||v==null) return def;
+      if(v==null) return def;
       switch(typeof(def)){
       case "number":
         if(v=="true") return 1;
@@ -176,16 +191,17 @@ if(window.customElements){
         case "x": return (x|0).toString(16);
         case "X": return (x|0).toString(16).toUpperCase();
         case "d": return (x|0).toString();
-        case "f": return x.toFixed(c);
+        case "f": return parseFloat(x).toFixed(c);
         case "s": return x.toString();
         }
         return "";
       }
       function numformat(s,x){
-        if(typeof(x)=="undefined")
-          return;
         let i=s.indexOf("%");
         let c=[0,0],type=0,m=0,r="",j=i+1;
+        if(s.indexOf("%s")>=0){
+          return s.replace("%s",x);
+        }
         for(;j<s.length;++j){
           if("dfxXs".indexOf(s[j])>=0){
             type=s[j];
@@ -196,10 +212,7 @@ if(window.customElements){
           else
             c[m]=c[m]*10+parseInt(s[j]);
         }
-        if(typeof(x)=="number")
-          r=valstr(x,c[1],type);
-        else
-          r=valstr(x.x,c[1],type)+","+valstr(x.y,c[1],type);
+        r=valstr(x,c[1],type);
         if(c[0]>0)
           r=("               "+r).slice(-c[0]);
         r=s.replace(/%.*[xXdfs]/,r);
@@ -209,9 +222,9 @@ if(window.customElements){
       if(this.drag||this.hover){
         if(this.valuetip){
           if(s==null)
-            s=`%.${this.digits}f`;
+            s=`%s`;
           else if(s.indexOf("%")<0)
-            s+=` : %.${this.digits}f`;
+            s+=` : %s`;
         }
         if(s){
           this.ttframe.innerHTML=numformat(s,this.convValue);
@@ -300,14 +313,14 @@ try{
     }
     connectedCallback(){
       let root;
-//      if(this.attachShadow)
-//        root=this.attachShadow({mode: 'open'});
-//      else
+      if(this.attachShadow)
+        root=this.attachShadow({mode: 'open'});
+      else
         root=this;
       root.innerHTML=
 `<style>
 ${this.basestyle}
-webaudio-knob{
+:host{
   display:inline-block;
   position:relative;
   margin:0;
@@ -331,16 +344,17 @@ webaudio-knob{
       this.enable=this.getAttr("enable",1);
       this._src=this.getAttr("src",opt.knobSrc); Object.defineProperty(this,"src",{get:()=>{return this._src},set:(v)=>{this._src=v;this.setupImage()}});
       this._value=this.getAttr("value",0); Object.defineProperty(this,"value",{get:()=>{return this._value},set:(v)=>{this._value=v;this.redraw()}});
-      this.defvalue=this.getAttr("defvalue",0);
+      this.defvalue=this.getAttr("defvalue",this._value);
       this._min=this.getAttr("min",0); Object.defineProperty(this,"min",{get:()=>{return this._min},set:(v)=>{this._min=+v;this.redraw()}});
       this._max=this.getAttr("max",100); Object.defineProperty(this,"max",{get:()=>{return this._max},set:(v)=>{this._max=+v;this.redraw()}});
       this._step=this.getAttr("step",1); Object.defineProperty(this,"step",{get:()=>{return this._step},set:(v)=>{this._step=+v;this.redraw()}});
       this._sprites=this.getAttr("sprites",opt.knobSprites); Object.defineProperty(this,"sprites",{get:()=>{return this._sprites},set:(v)=>{this._sprites=v;this.setupImage()}});
-      this._width=this.getAttr("width",opt.knobWidth); Object.defineProperty(this,"width",{get:()=>{return this._width},set:(v)=>{this._width=v;this.setupImage()}});
-      this._height=this.getAttr("height",opt.knobHeight); Object.defineProperty(this,"height",{get:()=>{return this._height},set:(v)=>{this._height=v;this.setupImage()}});
-      this._diameter=this.getAttr("diameter",opt.knobDiameter); Object.defineProperty(this,"diameter",{get:()=>{return this._diameter},set:(v)=>{this._diameter=v;this.setupImage()}});
+      this._width=this.getAttr("width", null); Object.defineProperty(this,"width",{get:()=>{return this._width},set:(v)=>{this._width=v;this.setupImage()}});
+      this._height=this.getAttr("height", null); Object.defineProperty(this,"height",{get:()=>{return this._height},set:(v)=>{this._height=v;this.setupImage()}});
+      this._diameter=this.getAttr("diameter", null); Object.defineProperty(this,"diameter",{get:()=>{return this._diameter},set:(v)=>{this._diameter=v;this.setupImage()}});
       this._colors=this.getAttr("colors",opt.knobColors); Object.defineProperty(this,"colors",{get:()=>{return this._colors},set:(v)=>{this._colors=v;this.setupImage()}});
       this.outline=this.getAttr("outline",opt.outline);
+      this.log=this.getAttr("log",0);
       this.sensitivity=this.getAttr("sensitivity",1);
       this.valuetip=this.getAttr("valuetip",opt.valuetip);
       this.tooltip=this.getAttr("tooltip",null);
@@ -365,34 +379,19 @@ webaudio-knob{
       }
       this.setupImage();
       this.digits=0;
+      if(this.step && this.step < 1) {
+        for(let n = this.step ; n < 1; n *= 10)
+          ++this.digits;
+      }
+      this._setValue(this._value);
       this.coltab=["#e00","#000","#000"];
       if(window.webAudioControlsMidiManager)
         window.webAudioControlsMidiManager.addWidget(this);
     }
     disconnectedCallback(){}
     setupImage(){
-      this.kw=this.dynamicwidth||this.width||this.diameter;
-      this.kh=this.dynamicheight||this.height||this.diameter;
-      if(this.src && this.sprites && this.kw < 0) {
-        // It is an ugly hack to support "content based" sizing of knobs.
-        // **IF** diameter is less than 0, then it will be content based.
-        // Since we cannot get the image sizes until it is loaded, while this setup function is
-        // not asynchronous, we only set up a dummy image to acquire sizes and call `setupImage()`
-        // in its "loaded" callback.
-        // (It should be also noted that there is no "onload" events for CSS background image)
-        //
-        // FIXME: this will fail to update image if src is changed and it is sized based on the image content.
-        this.sizecalcimg = new Image();
-        this.sizecalcimg.onload = () => {
-          this.dynamicwidth = this.sizecalcimg.naturalWidth;
-          this.dynamicheight = this.sizecalcimg.naturalHeight / (this.sprites + 1);
-          this._width = this.dynamicwidth;
-          this._height = this.dynamicheight;
-          this.setupImage();
-        };
-        this.sizecalcimg.src = this.src;
-        return;
-      }
+      this.kw=this._width||this._diameter||opt.knobWidth||opt.knobDiameter;
+      this.kh=this._height||this._diameter||opt.knobHeight||opt.knobDiameter;
       if(!this.src){
         if(this.colors)
           this.coltab = this.colors.split(";");
@@ -409,25 +408,39 @@ webaudio-knob{
         }
         svg += "</svg>";
         this.elem.style.backgroundImage = "url(data:image/svg+xml;base64,"+btoa(svg)+")";
-//        this.elem.style.backgroundSize = "100% 10100%";
+        if(this.kw==null) this.kw=64;
+        if(this.kh==null) this.kh=64;
         this.elem.style.backgroundSize = `${this.kw}px ${this.kh*101}px`;
+        this.elem.style.width=this.kw+"px";
+        this.elem.style.height=this.kh+"px";
+        this.style.height=this.kh+"px";
+        this.redraw();
+        return;
       }
       else{
-        this.elem.style.backgroundImage = "url("+(this.src)+")";
-        if(!this.sprites)
-          this.elem.style.backgroundSize = "100% 100%";
-        else{
-//          this.elem.style.backgroundSize = `100% ${(this.sprites+1)*100}%`;
-          this.elem.style.backgroundSize = `${this.kw}px ${this.kh*(this.sprites+1)}px`;
-        }
+        this.img=new Image();
+        this.img.onload=()=>{
+          this.elem.style.backgroundImage = "url("+(this.src)+")";
+          if(this._sprites==null)
+            this._sprites=this.img.height/this.img.width - 1;
+          else
+            this._sprites=+this._sprites;
+          if(this.kw==null) this.kw=this.img.width;
+          if(this.kh==null) this.kh=this.img.height/(this.sprites+1);
+          if(!this.sprites)
+            this.elem.style.backgroundSize = "100% 100%";
+          else
+            this.elem.style.backgroundSize = `${this.kw}px ${this.kh*(this.sprites+1)}px`;
+          this.elem.style.width=this.kw+"px";
+          this.elem.style.height=this.kh+"px";
+          this.style.height=this.kh+"px";
+          this.redraw();
+        };
+        this.img.src=this.src;
       }
-      this.elem.style.outline=this.outline?"":"none";
-      this.elem.style.width=this.kw+"px";
-      this.elem.style.height=this.kh+"px";
-      this.style.height=this.kh+"px";
-      this.redraw();
     }
     redraw() {
+      let ratio;
       this.digits=0;
       if(this.step && this.step < 1) {
         for(let n = this.step ; n < 1; n *= 10)
@@ -435,21 +448,22 @@ webaudio-knob{
       }
       if(this.value<this.min){
         this.value=this.min;
-        return;
       }
       if(this.value>this.max){
         this.value=this.max;
-        return;
       }
-      let range = this.max - this.min;
+      if(this.log)
+        ratio = Math.log(this.value/this.min) / Math.log(this.max/this.min);
+      else
+        ratio = (this.value - this.min) / (this.max - this.min);
       let style = this.elem.style;
       let sp = this.src?this.sprites:100;
       if(sp>=1){
-        let offset = ((sp * (this.value - this.min) / range) | 0);
+        let offset = (sp * ratio) | 0;
         style.backgroundPosition = "0px " + (-offset*this.kh) + "px";
         style.transform = 'rotate(0deg)';
       } else {
-        let deg = 270 * ((this.value - this.min) / range - 0.5);
+        let deg = 270 * (ratio - 0.5);
         style.backgroundPosition="0px 0px";
         style.transform = 'rotate(' + deg + 'deg)';
       }
@@ -468,6 +482,9 @@ webaudio-knob{
         }
         else
           this.convValue=this._value;
+        if(typeof(this.convValue)=="number"){
+          this.convValue=this.convValue.toFixed(this.digits);
+        }
         this.redraw();
         this.showtip(0);
         return 1;
@@ -478,16 +495,41 @@ webaudio-knob{
       if(this._setValue(v) && f)
         this.sendEvent("input"),this.sendEvent("change");
     }
+    keydown(e){
+      const delta = this.step;
+      if(delta==0)
+        delta=1;
+      switch(e.key){
+      case "ArrowUp":
+        this.setValue(this.value+delta,true);
+        break;
+      case "ArrowDown":
+        this.setValue(this.value-delta,true);
+        break;
+      default:
+          return;
+      }
+      e.preventDefault();
+      e.stopPropagation();
+    }
     wheel(e) {
       if (!this.enable)
         return;
-      let delta=(this.max-this.min)*0.01;
-      delta=e.deltaY>0?-delta:delta;
-      if(!e.shiftKey)
-        delta*=5;
-      if(Math.abs(delta) < this.step)
-        delta = (delta > 0) ? +this.step : -this.step;
-      this.setValue(+this.value+delta,true);
+      if(this.log){
+        let r=Math.log(this.value/this.min)/Math.log(this.max/this.min);
+        let d = (e.deltaY>0?-0.01:0.01);
+        if(!e.shiftKey)
+          d*=5;
+        r += d;
+        this.setValue(this.min*Math.pow(this.max/this.min,r),true);
+      }
+      else{
+        let delta=Math.max(this.step, (this.max-this.min)*0.05);
+        if(e.shiftKey)
+          delta=this.step?this.step:1;
+        delta=e.deltaY>0?-delta:delta;
+        this.setValue(+this.value+delta,true);
+      }
       e.preventDefault();
       e.stopPropagation();
     }
@@ -523,7 +565,16 @@ webaudio-knob{
           this.startVal = this.value;
         }
         let offset = (this.startPosY - e.pageY - this.startPosX + e.pageX) * this.sensitivity;
-        this._setValue(this.min + ((((this.startVal + (this.max - this.min) * offset / ((e.shiftKey ? 4 : 1) * 128)) - this.min) / this.step) | 0) * this.step);
+        if(this.log){
+          let r = Math.log(this.startVal / this.min) / Math.log(this.max / this.min);
+          r += offset/((e.shiftKey?4:1)*128);
+          if(r<0) r=0;
+          if(r>1) r=1;
+          this._setValue(this.min * Math.pow(this.max/this.min, r));
+        }
+        else{
+          this._setValue(this.min + ((((this.startVal + (this.max - this.min) * offset / ((e.shiftKey ? 4 : 1) * 128)) - this.min) / this.step) | 0) * this.step);
+        }
         this.sendEvent("input");
         if(e.preventDefault)
           e.preventDefault();
@@ -585,14 +636,14 @@ try{
     }
     connectedCallback(){
       let root;
-//      if(this.attachShadow)
-//        root=this.attachShadow({mode: 'open'});
-//      else
+      if(this.attachShadow)
+        root=this.attachShadow({mode: 'open'});
+      else
         root=this;
       root.innerHTML=
 `<style>
 ${this.basestyle}
-webaudio-slider{
+:host{
   display:inline-block;
   position:relative;
   margin:0;
@@ -625,24 +676,17 @@ webaudio-slider{
       this._src=this.getAttr("src",opt.sliderSrc); Object.defineProperty(this,"src",{get:()=>{return this._src},set:(v)=>{this._src=v;this.setupImage()}});
       this._knobsrc=this.getAttr("knobsrc",opt.sliderKnobsrc); Object.defineProperty(this,"knobsrc",{get:()=>{return this._knobsrc},set:(v)=>{this._knobsrc=v;this.setupImage()}});
       this._value=this.getAttr("value",0); Object.defineProperty(this,"value",{get:()=>{return this._value},set:(v)=>{this._value=v;this.redraw()}});
-      this.defvalue=this.getAttr("defvalue",0);
+      this.defvalue=this.getAttr("defvalue",this._value);
       this._min=this.getAttr("min",0); Object.defineProperty(this,"min",{get:()=>{return this._min},set:(v)=>{this._min=v;this.redraw()}});
       this._max=this.getAttr("max",100); Object.defineProperty(this,"max",{get:()=>{return this._max},set:(v)=>{this._max=v;this.redraw()}});
       this._step=this.getAttr("step",1); Object.defineProperty(this,"step",{get:()=>{return this._step},set:(v)=>{this._step=v;this.redraw()}});
       this._sprites=this.getAttr("sprites",0); Object.defineProperty(this,"sprites",{get:()=>{return this._sprites},set:(v)=>{this._sprites=v;this.setupImage()}});
       this._direction=this.getAttr("direction",null); Object.defineProperty(this,"direction",{get:()=>{return this._direction},set:(v)=>{this._direction=v;this.setupImage()}});
+      this.log=this.getAttr("log",0);
       this._width=this.getAttr("width",opt.sliderWidth); Object.defineProperty(this,"width",{get:()=>{return this._width},set:(v)=>{this._width=v;this.setupImage()}});
       this._height=this.getAttr("height",opt.sliderHeight); Object.defineProperty(this,"height",{get:()=>{return this._height},set:(v)=>{this._height=v;this.setupImage()}});
-      if(this._direction=="horz"){
-        if(this._width==0) this._width=128;
-        if(this._height==0) this._height=24;
-      }
-      else{
-        if(this._width==0) this._width=24;
-        if(this._height==0) this._height=128;
-      }
-      this._knobwidth=this.getAttr("knobwidth",opt.sliderKnobwidth); Object.defineProperty(this,"knobwidth",{get:()=>{return this._knobwidth},set:(v)=>{this._knobwidth=v;this.setupImage()}});
-      this._knobheight=this.getAttr("knbheight",opt.sliderKnobheight); Object.defineProperty(this,"knobheight",{get:()=>{return this._knobheight},set:(v)=>{this._knobheight=v;this.setupImage()}});
+      this._knobwidth=this.getAttr("knobwidth",opt.sliderKnobWidth); Object.defineProperty(this,"knobwidth",{get:()=>{return this._knobwidth},set:(v)=>{this._knobwidth=v;this.setupImage()}});
+      this._knobheight=this.getAttr("knobheight",opt.sliderKnobHeight); Object.defineProperty(this,"knobheight",{get:()=>{return this._knobheight},set:(v)=>{this._knobheight=v;this.setupImage()}});
       this._ditchlength=this.getAttr("ditchlength",opt.sliderDitchlength); Object.defineProperty(this,"ditchlength",{get:()=>{return this._ditchlength},set:(v)=>{this._ditchlength=v;this.setupImage()}});
       this._colors=this.getAttr("colors",opt.sliderColors); Object.defineProperty(this,"colors",{get:()=>{return this._colors},set:(v)=>{this._colors=v;this.setupImage()}});
       this.outline=this.getAttr("outline",opt.outline);
@@ -669,6 +713,10 @@ webaudio-slider{
       }
       this.setupImage();
       this.digits=0;
+      if(this.step && this.step < 1) {
+        for(let n = this.step ; n < 1; n *= 10)
+          ++this.digits;
+      }
       if(window.webAudioControlsMidiManager)
 //        window.webAudioControlsMidiManager.updateWidgets();
         window.webAudioControlsMidiManager.addWidget(this);
@@ -677,63 +725,77 @@ webaudio-slider{
     disconnectedCallback(){}
     setupImage(){
       this.coltab = this.colors.split(";");
-      this.dr=this.direction;
-      this.dlen=this.ditchlength;
-      if(!this.width){
-        if(this.dr=="horz")
-          this.width=128;
-        else
-          this.width=24;
-      }
-      if(!this.height){
-        if(this.dr=="horz")
-          this.height=24;
-        else
-          this.height=128;
-      }
-      if(!this.dr)
-        this.dr=(this.width<=this.height)?"vert":"horz";
-      if(this.dr=="vert"){
-        if(!this.dlen)
-          this.dlen=this.height-this.width;
+      this.bodyimg=new Image();
+      this.knobimg=new Image();
+      this.srcurl=null;
+      if(this.src==null||this.src==""){
+        if(this._direction=="horz"){
+          if(this._width==null) this._width=128;
+          if(this._height==null) this._height=24;
+        }
+        else{
+          if(this._width==null) this._width=24;
+          if(this._height==null) this._height=128;
+        }
+        const r=Math.min(this._width,this._height)*0.5;
+        const svgbody=
+`<svg xmlns="http://www.w3.org/2000/svg" width="${this._width}" height="${this._height}" preserveAspectRatio="none">
+<rect x="1" y="1" rx="${r}" ry="${r}" width="${this._width-2}" height="${this._height-2}" fill="${this.coltab[1]}"/></svg>`;
+        this.srcurl = "data:image/svg+xml;base64,"+btoa(svgbody);
       }
       else{
-        if(!this.dlen)
-          this.dlen=this.width-this.height;
+        this.srcurl = this.src;
       }
-      this.knob.style.backgroundSize = "100% 100%";
-      this.elem.style.backgroundSize = "100% 100%";
-      this.elem.style.width=this.width+"px";
-      this.elem.style.height=this.height+"px";
-      this.style.height=this.height+"px";
-      this.kwidth=this.knobwidth||(this.dr=="horz"?this.height:this.width);
-      this.kheight=this.knobheight||(this.dr=="horz"?this.height:this.width);
-      this.knob.style.width = this.kwidth+"px";
-      this.knob.style.height = this.kheight+"px";
-      if(!this.src){
-        let r=Math.min(this.width,this.height)*0.5;
-        let svgbody=
-`<svg xmlns="http://www.w3.org/2000/svg" width="${this.width}" height="${this.height}" preserveAspectRatio="none">
-<rect x="1" y="1" rx="${r}" ry="${r}" width="${this.width-2}" height="${this.height-2}" fill="${this.coltab[1]}"/></svg>`;
-        this.elem.style.backgroundImage = "url(data:image/svg+xml;base64,"+btoa(svgbody)+")";
-      }
-      else{
-        this.elem.style.backgroundImage = "url("+(this.src)+")";
-      }
-      if(!this.knobsrc){
-        let svgthumb=
-`<svg xmlns="http://www.w3.org/2000/svg" width="${this.kwidth}" height="${this.kheight}" preserveAspectRatio="none">
-<radialGradient id="gr" cx="30%" cy="30%"><stop offset="0%" stop-color="${this.coltab[2]}"/><stop offset="100%" stop-color="${this.coltab[0]}"/></radialGradient>
-<rect x="2" y="2" width="${this.kwidth-4}" height="${this.kheight-4}" rx="${this.kwidth*0.5}" ry="${this.kheight*0.5}" fill="url(#gr)"/></svg>`;
-        this.knob.style.backgroundImage = "url(data:image/svg+xml;base64,"+btoa(svgthumb)+")";
-      }
-      else{
-        this.knob.style.backgroundImage = "url("+(this.knobsrc)+")";
-      }
-      this.elem.style.outline=this.outline?"":"none";
-      this.redraw();
+      this.bodyimg.onload=()=>{
+        if(this.src!="")
+          this.elem.style.backgroundImage = "url("+this.srcurl+")";
+        this.sw=this._width;
+        this.sh=this._height;
+        if(this.sw==null) this.sw=this.bodyimg.width;
+        if(this.sh==null) this.sh=this.bodyimg.height;
+        this.sw=+this.sw;
+        this.sh=+this.sh;
+        if(this.dr==null){
+          if(this.sw>this.sh)
+            this.dr="horz";
+          else
+            this.dr="vert";
+        }
+        this.dlen=this.ditchlength;
+        this.kw=this.knobwidth||(this.dr=="horz"?this.sh:this.sw);
+        this.kh=this.knobheight||(this.dr=="horz"?this.sh:this.sw);
+        if(this.dlen==null){
+          if(this.dr=="horz")
+            this.dlen=this.sw-this.kw;
+          else
+            this.dlen=this.sh-this.kh;
+        }
+
+        if(this._knobsrc==null){
+          const svgknob=
+`<svg xmlns="http://www.w3.org/2000/svg" width="${this.kw}" height="${this.kh}" preserveAspectRatio="none">
+<radialGradient id="gr" cx="30%" cy="30%"><stop offset="0%" stop-color="${this.coltab[2]}"/><stop offset="100%" stop-color="${this.coltab[0]}"/></radialGradient><rect x="2" y="2" width="${this.kw-4}" height="${this.kh-4}" rx="${this.kw*0.5}" ry="${this.kh*0.5}" fill="url(#gr)"/></svg>`;
+          this.knobsrcurl = "data:image/svg+xml;base64,"+btoa(svgknob);
+        }
+        else{
+          this.knobsrcurl = this.knobsrc;
+        }
+        this.knobimg.onload=()=>{
+          this.knob.style.backgroundImage = "url("+this.knobsrcurl+")";
+          this.knob.style.backgroundSize = "100% 100%";
+          this.knob.style.width = this.kw+"px";
+          this.knob.style.height = this.kh+"px";
+          this.elem.style.backgroundSize = "100% 100%";
+          this.elem.style.width=this.sw+"px";
+          this.elem.style.height=this.sh+"px";
+          this.redraw();
+        };
+        this.knobimg.src=this.knobsrcurl;
+      };
+      this.bodyimg.src=this.srcurl;
     }
     redraw() {
+      let ratio;
       this.digits=0;
       if(this.step && this.step < 1) {
         for(let n = this.step ; n < 1; n *= 10)
@@ -741,23 +803,24 @@ webaudio-slider{
       }
       if(this.value<this.min){
         this.value=this.min;
-        return;
       }
       if(this.value>this.max){
         this.value=this.max;
-        return;
       }
-      let range = this.max - this.min;
+      if(this.log)
+        ratio = Math.log(this.value/this.min) / Math.log(this.max/this.min);
+      else
+        ratio = (this.value - this.min) / (this.max - this.min);
       let style = this.knob.style;
-      if(this.dr=="vert"){
-        style.left=(this.width-this.kwidth)*0.5+"px";
-        style.top=(1-(this.value-this.min)/range)*this.dlen+"px";
-        this.sensex=0; this.sensey=1;
+      if(this.dr=="horz"){
+        style.top=(this.sh-this.kh)*0.5+"px";
+        style.left=((this.sw-this.kw-this.dlen)*0.5+ratio*this.dlen)+"px";
+        this.sensex=1; this.sensey=0;
       }
       else{
-        style.top=(this.height-this.kheight)*0.5+"px";
-        style.left=(this.value-this.min)/range*this.dlen+"px";
-        this.sensex=1; this.sensey=0;
+        style.left=(this.sw-this.kw)*0.5+"px";
+        style.top=((this.sh-this.kh-this.dlen)*0.5+(1-ratio)*this.dlen)+"px";
+        this.sensex=0; this.sensey=1;
       }
     }
     _setValue(v){
@@ -773,6 +836,9 @@ webaudio-slider{
         }
         else
           this.convValue=this._value;
+        if(typeof(this.convValue)=="number"){
+          this.convValue=this.convValue.toFixed(this.digits);
+        }
         this.redraw();
         this.showtip(0);
         return 1;
@@ -783,17 +849,43 @@ webaudio-slider{
       if(this._setValue(v)&&f)
         this.sendEvent("input"),this.sendEvent("change");
     }
-    wheel(e) {
-      let delta=(this.max-this.min)*0.01;
-      delta=e.deltaY>0?-delta:delta;
-      if(!e.shiftKey)
-        delta*=5;
-      if(Math.abs(delta) < this.step)
-        delta = (delta > 0) ? +this.step : -this.step;
-      this.setValue(+this.value+delta,true);
+    keydown(e){
+      const delta = this.step;
+      if(delta==0)
+        delta=1;
+      switch(e.key){
+      case "ArrowUp":
+        this.setValue(this.value+delta,true);
+        break;
+      case "ArrowDown":
+        this.setValue(this.value-delta,true);
+        break;
+      default:
+          return;
+      }
       e.preventDefault();
       e.stopPropagation();
-      this.redraw();
+    }
+    wheel(e) {
+      if (!this.enable)
+        return;
+      if(this.log){
+        let r=Math.log(this.value/this.min)/Math.log(this.max/this.min);
+        let d = (e.deltaY>0?-0.01:0.01);
+        if(!e.shiftKey)
+          d*=5;
+        r += d;
+        this.setValue(this.min*Math.pow(this.max/this.min,r),true);
+      }
+      else{
+        let delta=Math.max(this.step, (this.max-this.min)*0.05);
+        if(e.shiftKey)
+          delta=this.step?this.step:1;
+        delta=e.deltaY>0?-delta:delta;
+        this.setValue(+this.value+delta,true);
+      }
+      e.preventDefault();
+      e.stopPropagation();
     }
     pointerdown(ev){
       if(!this.enable)
@@ -829,15 +921,28 @@ webaudio-slider{
         if(this.tracking=="abs"){
           const rc = this.getBoundingClientRect();
           let val;
-          if(this.direction=="horz")
-            val = Math.max(0,Math.min(1,(e.pageX-rc.left-this.kwidth*0.5)/(this.width-this.kwidth)));
+          if(this.dr=="horz")
+            val = Math.max(0,Math.min(1,(e.pageX-rc.left-window.pageXOffset-this.kwidth*0.5)/(this.width-this.kwidth)));
           else
-            val = 1 - Math.max(0,Math.min(1,(e.pageY-rc.top-this.kheight*0.5)/(this.height-this.kheight)));
-          this._setValue(this.min + (this.max - this.min)*val);
+            val = 1 - Math.max(0,Math.min(1,(e.pageY-rc.top-window.pageYOffset-this.kheight*0.5)/(this.height-this.kheight)));
+          if(this.log){
+            this._setValue(this.min * Math.pow(this.max/this.min, val));
+          }
+          else
+            this._setValue(this.min + (this.max - this.min)*val);
         }
         else{
           let offset = ((this.startPosY - e.pageY)*this.sensey - (this.startPosX - e.pageX)*this.sensex) * this.sensitivity;
-          this._setValue(this.min + ((((this.startVal + (this.max - this.min) * offset / ((e.shiftKey ? 4 : 1) * this.dlen)) - this.min) / this.step) | 0) * this.step);
+          if(this.log){
+            let r = Math.log(this.startVal / this.min) / Math.log(this.max / this.min);
+            r += offset/((e.shiftKey?4:1)*128);
+            if(r<0) r=0;
+            if(r>1) r=1;
+            this._setValue(this.min * Math.pow(this.max/this.min, r));
+          }
+          else{
+            this._setValue(this.min + ((((this.startVal + (this.max - this.min) * offset / ((e.shiftKey ? 4 : 1) * this.dlen)) - this.min) / this.step) | 0) * this.step);
+          }
         }
         this.sendEvent("input");
         if(e.preventDefault)
@@ -881,12 +986,12 @@ webaudio-slider{
         this.startVal = this.value;
         window.addEventListener('mousemove', pointermove);
         window.addEventListener('touchmove', pointermove, {passive:false});
+        pointermove(ev);
       }
       window.addEventListener('mouseup', pointerup);
       window.addEventListener('touchend', pointerup);
       window.addEventListener('touchcancel', pointerup);
       document.body.addEventListener('touchstart', preventScroll,{passive:false});
-      pointermove(ev);
       e.preventDefault();
       e.stopPropagation();
       return false;
@@ -903,14 +1008,14 @@ try{
     }
     connectedCallback(){
       let root;
-//      if(this.attachShadow)
-//        root=this.attachShadow({mode: 'open'});
-//      else
+      if(this.attachShadow)
+        root=this.attachShadow({mode: 'open'});
+      else
         root=this;
       root.innerHTML=
 `<style>
 ${this.basestyle}
-webaudio-switch{
+:host{
   display:inline-block;
   margin:0;
   padding:0;
@@ -933,12 +1038,12 @@ webaudio-switch{
       this.enable=this.getAttr("enable",1);
       this._src=this.getAttr("src",null); Object.defineProperty(this,"src",{get:()=>{return this._src},set:(v)=>{this._src=v;this.setupImage()}});
       this._value=this.getAttr("value",0); Object.defineProperty(this,"value",{get:()=>{return this._value},set:(v)=>{this._value=v;this.redraw()}});
-      this.defvalue=this.getAttr("defvalue",0);
+      this.defvalue=this.getAttr("defvalue",this._value);
       this.type=this.getAttr("type","toggle");
       this.group=this.getAttr("group","");
-      this._width=this.getAttr("width",0); Object.defineProperty(this,"width",{get:()=>{return this._width},set:(v)=>{this._width=v;this.setupImage()}});
-      this._height=this.getAttr("height",0); Object.defineProperty(this,"height",{get:()=>{return this._height},set:(v)=>{this._height=v;this.setupImage()}});
-      this._diameter=this.getAttr("diameter",0); Object.defineProperty(this,"diameter",{get:()=>{return this._diameter},set:(v)=>{this._diameter=v;this.setupImage()}});
+      this._width=this.getAttr("width",null); Object.defineProperty(this,"width",{get:()=>{return this._width},set:(v)=>{this._width=v;this.setupImage()}});
+      this._height=this.getAttr("height",null); Object.defineProperty(this,"height",{get:()=>{return this._height},set:(v)=>{this._height=v;this.setupImage()}});
+      this._diameter=this.getAttr("diameter",null); Object.defineProperty(this,"diameter",{get:()=>{return this._diameter},set:(v)=>{this._diameter=v;this.setupImage()}});
       this.invert=this.getAttr("invert",0);
       this._colors=this.getAttr("colors",opt.switchColors); Object.defineProperty(this,"colors",{get:()=>{return this._colors},set:(v)=>{this._colors=v;this.setupImage()}});
       this.outline=this.getAttr("outline",opt.outline);
@@ -955,6 +1060,10 @@ webaudio-switch{
       }
       this.setupImage();
       this.digits=0;
+      if(this.step && this.step < 1) {
+        for(let n = this.step ; n < 1; n *= 10)
+          ++this.digits;
+      }
       if(window.webAudioControlsMidiManager)
 //        window.webAudioControlsMidiManager.updateWidgets();
         window.webAudioControlsMidiManager.addWidget(this);
@@ -962,48 +1071,36 @@ webaudio-switch{
     }
     disconnectedCallback(){}
     setupImage(){
-      let w=this.dynamicwidth||this.width||this.diameter||opt.switchWidth||opt.switchDiameter;
-      let h=this.dynamicheight||this.height||this.diameter||opt.switchHeight||opt.switchDiameter;
-      if(this.src && w < 0) {
-        // The same kind of hack as knobs.
-        //
-        // FIXME: this will fail to update image if src is changed and it is sized based on the image content.
-        this.sizecalcimg = new Image();
-        this.sizecalcimg.onload = () => {
-          this.dynamicwidth = this.sizecalcimg.naturalWidth;
-          this.dynamicheight = this.sizecalcimg.naturalHeight / 2;
-          this._width = this.dynamicwidth;
-          this._height = this.dynamicheight;
-          this.setupImage();
-        };
-        this.sizecalcimg.src = this.src;
-        return;
-      }
-      if(!this.src){
-        this.coltab = this.colors.split(";");
-        let mm=Math.min(w,h);
+      this.coltab = this.colors.split(";");
+      this.kw=this._width||this._diameter||opt.switchWidth||opt.switchDiameter;
+      this.kh=this._height||this._diameter||opt.switchHeight||opt.switchDiameter;
+      this.img=new Image();
+      this.srcurl=null;
+      if(this.src==null||this.src==""){
+        if(this.kw==null) this.kw=32;
+        if(this.kh==null) this.kh=32;
+        let mm=Math.min(this.kw,this.kh);
         let svg=
-`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h*2}" preserveAspectRatio="none">
+`<svg xmlns="http://www.w3.org/2000/svg" width="${this.kw}" height="${this.kh*2}" preserveAspectRatio="none">
 <radialGradient id="gr" cx="30%" cy="30%"><stop offset="0%" stop-color="${this.coltab[2]}"/><stop offset="100%" stop-color="${this.coltab[0]}"/></radialGradient>
-<rect x="${w*0.05}" y="${h*0.05}" width="${w*0.9}" height="${h*0.9}" rx="${mm*0.1}" ry="${mm*0.1}" fill="${this.coltab[1]}"/>
-<rect x="${w*0.05}" y="${h*1.05}" width="${w*0.9}" height="${h*0.9}" rx="${mm*0.1}" ry="${mm*0.1}" fill="${this.coltab[1]}"/>
-<circle cx="${w*0.5}" cy="${h*0.5}" r="${mm*0.3}" stroke="${this.coltab[0]}" stroke-width="2"/>
-<circle cx="${w*0.5}" cy="${h*1.5}" r="${mm*0.3}" stroke="${this.coltab[0]}" stroke-width="2" fill="url(#gr)"/></svg>`;
-        this.elem.style.backgroundImage = "url(data:image/svg+xml;base64,"+btoa(svg)+")";
+<rect x="${this.kw*0.05}" y="${this.kh*0.05}" width="${this.kw*0.9}" height="${this.kh*0.9}" rx="${mm*0.1}" ry="${mm*0.1}" fill="${this.coltab[1]}"/>
+<rect x="${this.kw*0.05}" y="${this.kh*1.05}" width="${this.kw*0.9}" height="${this.kh*0.9}" rx="${mm*0.1}" ry="${mm*0.1}" fill="${this.coltab[1]}"/>
+<circle cx="${this.kw*0.5}" cy="${this.kh*0.5}" r="${mm*0.3}" stroke="${this.coltab[0]}" stroke-width="2"/>
+<circle cx="${this.kw*0.5}" cy="${this.kh*1.5}" r="${mm*0.3}" stroke="${this.coltab[0]}" stroke-width="2" fill="url(#gr)"/></svg>`;
+        this.srcurl="data:image/svg+xml;base64,"+btoa(svg);
+      }
+      else
+        this.srcurl=this.src;
+      this.img.onload=()=>{
+        if(this.kw==null) this.kw=this.img.width;
+        if(this.kh==null) this.kh=this.img.height*0.5;
+        this.elem.style.backgroundImage = "url("+this.srcurl+")";
         this.elem.style.backgroundSize = "100% 200%";
+        this.elem.style.width=this.kw+"px";
+        this.elem.style.height=this.kh+"px";
+        this.redraw();
       }
-      else{
-        this.elem.style.backgroundImage = "url("+(this.src)+")";
-        if(!this.sprites)
-          this.elem.style.backgroundSize = "100% 200%";
-        else
-          this.elem.style.backgroundSize = `100% ${(this.sprites+1)*100}%`;
-      }
-      this.elem.style.width=w+"px";
-      this.elem.style.height=h+"px";
-      this.style.height=h+"px";
-      this.elem.style.outline=this.outline?"":"none";
-      this.redraw();
+      this.img.src=this.srcurl;
     }
     redraw() {
       let style = this.elem.style;
@@ -1097,8 +1194,8 @@ webaudio-switch{
       window.addEventListener('touchcancel', pointerup);
       document.body.addEventListener('touchstart', preventScroll,{passive:false});
       this.redraw();
-      e.preventDefault();
-      e.stopPropagation();
+      ev.preventDefault();
+      ev.stopPropagation();
       return false;
     }
   });
@@ -1120,14 +1217,14 @@ try{
     }
     connectedCallback(){
       let root;
-//      if(this.attachShadow)
-//        root=this.attachShadow({mode: 'open'});
-//      else
+      if(this.attachShadow)
+        root=this.attachShadow({mode: 'open'});
+      else
         root=this;
       root.innerHTML=
 `<style>
 ${this.basestyle}
-webaudio-param{
+:host{
   display:inline-block;
   user-select:none;
   margin:0;
@@ -1142,14 +1239,13 @@ webaudio-param{
   display:inline-block;
   position:relative;
   text-align:center;
-  border:1px solid #888;
   background:none;
-  border-radius:4px;
   margin:0;
   padding:0;
   font-family:sans-serif;
   font-size:11px;
   vertical-align:bottom;
+  border:none;
 }
 </style>
 <input class='webaudio-param-body' value='0' tabindex='1' touch-action='none'/><div class='webaudioctrl-tooltip'></div>
@@ -1160,11 +1256,11 @@ webaudio-param{
       this._value=this.getAttr("value",0); Object.defineProperty(this,"value",{get:()=>{return this._value},set:(v)=>{this._value=v;this.redraw()}});
       this.defvalue=this.getAttr("defvalue",0);
       this._fontsize=this.getAttr("fontsize",9); Object.defineProperty(this,"fontsize",{get:()=>{return this._fontsize},set:(v)=>{this._fontsize=v;this.setupImage()}});
-      this._src=this.getAttr("src",null); Object.defineProperty(this,"src",{get:()=>{return this._src},set:(v)=>{this._src=v;this.setupImage()}});
+      this._src=this.getAttr("src",opt.paramSrc); Object.defineProperty(this,"src",{get:()=>{return this._src},set:(v)=>{this._src=v;this.setupImage()}});
       this.link=this.getAttr("link","");
-      this._width=this.getAttr("width",32); Object.defineProperty(this,"width",{get:()=>{return this._width},set:(v)=>{this._width=v;this.setupImage()}});
-      this._height=this.getAttr("height",20); Object.defineProperty(this,"height",{get:()=>{return this._height},set:(v)=>{this._height=v;this.setupImage()}});
-      this._colors=this.getAttr("colors","#fff;#000"); Object.defineProperty(this,"colors",{get:()=>{return this._colors},set:(v)=>{this._colors=v;this.setupImage()}});
+      this._width=this.getAttr("width",opt.paramWidth); Object.defineProperty(this,"width",{get:()=>{return this._width},set:(v)=>{this._width=v;this.setupImage()}});
+      this._height=this.getAttr("height",opt.paramHeight); Object.defineProperty(this,"height",{get:()=>{return this._height},set:(v)=>{this._height=v;this.setupImage()}});
+      this._colors=this.getAttr("colors",opt.paramColors); Object.defineProperty(this,"colors",{get:()=>{return this._colors},set:(v)=>{this._colors=v;this.setupImage()}});
       this.outline=this.getAttr("outline",opt.outline);
       this.rconv=this.getAttr("rconv",null);
       this.midiController={};
@@ -1190,7 +1286,7 @@ webaudio-param{
             val=eval(this.rconv);
           }
           if(this.currentLink){
-            this.currentLink.target.setValue(val);
+            this.currentLink.target.setValue(val, true);
           }
         }
       }
@@ -1199,7 +1295,10 @@ webaudio-param{
     setupImage(){
       this.coltab = this.colors.split(";");
       this.elem.style.color=this.coltab[0];
-      if(!this.src){
+      if(this.src==""){
+        this.elem.style.background="none";
+      }
+      else if(!this.src){
         this.elem.style.backgroundColor=this.coltab[1];
       }
       else{
@@ -1212,10 +1311,18 @@ webaudio-param{
       this.elem.style.outline=this.outline?"":"none";
       let l=document.getElementById(this.link);
       if(l&&typeof(l.value)!="undefined"){
-        this.setValue(l.convValue.toFixed(l.digits));
+        if(typeof(l.convValue)=="number")
+          this.setValue(l.convValue.toFixed(l.digits));
+        else
+          this.setValue(l.convValue);
         if(this.currentLink)
           this.currentLink.removeEventListener("input",this.currentLink.func);
-        this.currentLink={target:l, func:(e)=>{this.setValue(l.convValue.toFixed(l.digits))}};
+        this.currentLink={target:l, func:(e)=>{
+          if(typeof(l.convValue)=="number")
+            this.setValue(l.convValue.toFixed(l.digits));
+          else
+            this.setValue(l.convValue);
+        }};
         this.currentLink.target.addEventListener("input",this.currentLink.func);
 //        l.addEventListener("input",(e)=>{this.setValue(l.convValue.toFixed(l.digits))});
       }
@@ -1262,14 +1369,14 @@ try{
     }
     connectedCallback(){
       let root;
-//      if(this.attachShadow)
-//        root=this.attachShadow({mode: 'open'});
-//      else
+      if(this.attachShadow)
+        root=this.attachShadow({mode: 'open'});
+      else
         root=this;
       root.innerHTML=
 `<style>
 ${this.basestyle}
-webaudio-keyboard{
+:host{
   display:inline-block;
   position:relative;
   margin:0;
@@ -1286,7 +1393,7 @@ webaudio-keyboard{
 </style>
 <canvas class='webaudio-keyboard-body' tabindex='1' touch-action='none'></canvas><div class='webauioctrl-tooltip'></div>
 `;
-      this.cv=root.childNodes[2];
+      this.elem=this.cv=root.childNodes[2];
       this.ttframe=root.childNodes[3];
       this.ctx=this.cv.getContext("2d");
       this._values=[];
@@ -1312,6 +1419,10 @@ webaudio-keyboard{
       }
       this.setupImage();
       this.digits=0;
+      if(this.step && this.step < 1) {
+        for(let n = this.step ; n < 1; n *= 10)
+          ++this.digits;
+      }
       if(window.webAudioControlsMidiManager)
         window.webAudioControlsMidiManager.addWidget(this);
     }
@@ -1552,11 +1663,16 @@ webaudio-keyboard{
         if(n>=0) this.dispvalues.splice(n,1);
       }
     }
-    setNote(state,note) {
-      this.setdispvalues(state,note);
-      this.redraw();
-    }
-  });
+    setNote(state,note,actx,when) {
+      const t=(actx&&when-actx.currentTime);
+      if(t>0){
+        setTimeout(()=>{this.setNote(state,note)},t*1000);
+      }
+      else{
+        this.setdispvalues(state,note);
+        this.redraw();
+      }
+    }  });
 } catch(error){
   console.log("webaudio-keyboard already defined");
 }
@@ -1568,14 +1684,14 @@ try{
     }
     connectedCallback(){
       let root;
-//      if(this.attachShadow)
-//        root=this.attachShadow({mode: 'open'});
-//      else
+      if(this.attachShadow)
+        root=this.attachShadow({mode: 'open'});
+      else
         root=this;
       root.innerHTML=
 `<style>
 ${this.basestyle}
-webaudio-xypad{
+:host{
   display:inline-block;
   position:relative;
   margin:0;
@@ -1618,7 +1734,7 @@ webaudio-xypad{
       this._width=this.getAttr("width",128); Object.defineProperty(this,"width",{get:()=>{return this._width},set:(v)=>{this._width=v;this.setupImage()}});
       this._height=this.getAttr("height",128); Object.defineProperty(this,"height",{get:()=>{return this._height},set:(v)=>{this._height=v;this.setupImage()}});
       this._knobwidth=this.getAttr("knobwidth",28); Object.defineProperty(this,"knobwidth",{get:()=>{return this._knobwidth},set:(v)=>{this._knobwidth=v;this.setupImage()}});
-      this._knobheight=this.getAttr("knbheight",28); Object.defineProperty(this,"knobheight",{get:()=>{return this._knobheight},set:(v)=>{this._knobheight=v;this.setupImage()}});
+      this._knobheight=this.getAttr("knobheight",28); Object.defineProperty(this,"knobheight",{get:()=>{return this._knobheight},set:(v)=>{this._knobheight=v;this.setupImage()}});
       this._colors=this.getAttr("colors",opt.sliderColors); Object.defineProperty(this,"colors",{get:()=>{return this._colors},set:(v)=>{this._colors=v;this.setupImage()}});
       this.outline=this.getAttr("outline",opt.outline);
       this.valuetip=this.getAttr("valuetip",opt.valuetip);
@@ -1839,7 +1955,7 @@ webaudio-xypad{
         e.preventDefault();
       }
       if(e.touches)
-        e = e.touches[0];
+        e = e.touches[0]; 
       if(e.ctrlKey || e.metaKey)
         this.setValue(this.defvalue,true);
       else {
@@ -1934,7 +2050,6 @@ webaudio-xypad{
       menu.knob=knob;
       menu.classList.add("active");
       menu.knob.focus();
-//      document.activeElement.onblur=this.contextMenuClose;
       menu.knob.addEventListener("keydown",this.contextMenuCloseByKey.bind(this));
     }
     contextMenuCloseByKey(e){
