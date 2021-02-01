@@ -22,28 +22,28 @@
 midnam:interface a lv2:ExtensionData .
 midnam:update a lv2:Feature .
 
-<https://github.com/atsushieno/aria2web#config>
+<https://github.com/atsushieno/aqua#config>
   a pg:Group ;
   lv2:symbol "config" ;
   lv2:name "Configuration",
     "Configuration"@fr ,
     "Impostazioni"@it .
 
-<https://github.com/atsushieno/aria2web:sfzfile>
+<https://github.com/atsushieno/aqua:sfzfile>
   a lv2:Parameter ;
   rdfs:label "SFZ file",
     "Fichier SFZ"@fr ,
     "File SFZ"@it ;
   rdfs:range atom:Path .
 
-<https://github.com/atsushieno/aria2web>
+<https://github.com/atsushieno/aqua>
   a doap:Project, lv2:Plugin, lv2:InstrumentPlugin ;
 
-  doap:name "aria2web" ;
+  doap:name "aqua" ;
   doap:license <https://spdx.org/licenses/MIT> ;
   doap:maintainer [
     foaf:name     "Atsushi Eno" ;
-    foaf:homepage <https://github.com/atsushieno/aria2web> ;
+    foaf:homepage <https://github.com/atsushieno/aqua> ;
   ] ;
   rdfs:comment "SFZ sampler with ARIA extension UI support powered by sfizz" ;
 
@@ -60,7 +60,7 @@ midnam:update a lv2:Feature .
   opts:supportedOption param:sampleRate ;
   opts:supportedOption bufsize:maxBlockLength, bufsize:nominalBlockLength ;
 
-  patch:writable <https://github.com/atsushieno/aria2web:sfzfile> ;
+  patch:writable <https://github.com/atsushieno/aqua:sfzfile> ;
 
   lv2:port [
     a lv2:InputPort, atom:AtomPort ;
@@ -108,7 +108,7 @@ midnam:update a lv2:Feature .
     lv2:name "Polyphony",
       "Polyphonie"@fr ,
       "Polifonia"@it ;
-    pg:group <https://github.com/atsushieno/aria2web#config> ;
+    pg:group <https://github.com/atsushieno/aqua#config> ;
     lv2:portProperty pprop:notAutomatic ;
     lv2:portProperty pprop:expensive ;
     lv2:portProperty lv2:integer ;
@@ -158,7 +158,7 @@ midnam:update a lv2:Feature .
     lv2:name "Internal oversampling factor",
       "Facteur de suréchantillonnage interne"@fr ,
       "Fattore Sovracampionamento Interno"@it ;
-    pg:group <https://github.com/atsushieno/aria2web#config> ;
+    pg:group <https://github.com/atsushieno/aqua#config> ;
     lv2:portProperty pprop:notAutomatic ;
     lv2:portProperty pprop:expensive ;
     lv2:portProperty lv2:integer ;
@@ -193,7 +193,7 @@ midnam:update a lv2:Feature .
     lv2:name "Preload size",
       "Taille préchargée"@fr ,
       "Grandezza Precaricamento"@it ;
-    pg:group <https://github.com/atsushieno/aria2web#config> ;
+    pg:group <https://github.com/atsushieno/aqua#config> ;
     lv2:portProperty pprop:notAutomatic ;
     lv2:portProperty pprop:expensive ;
     lv2:portProperty lv2:integer ;
@@ -243,13 +243,13 @@ midnam:update a lv2:Feature .
     lv2:maximum 1 ;
   ] ;
 
-  ui:ui <https://github.com/atsushieno/aria2web#ui> .
+  ui:ui <https://github.com/atsushieno/aqua#ui> .
 
-<https://github.com/atsushieno/aria2web#ui>
+<https://github.com/atsushieno/aqua#ui>
   a extui:Widget ;
-  ui:binary <aria2web-lv2ui.so> ;
+  ui:binary <aqua-lv2ui.so> ;
   ui:portNotification [
-        ui:plugin <https://github.com/atsushieno/aria2web> ;
+        ui:plugin <https://github.com/atsushieno/aqua> ;
         lv2:symbol "notify" ;
         ui:protocol atom:eventTransfer
   ] .

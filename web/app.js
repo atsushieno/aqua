@@ -19,29 +19,29 @@ async function readFileBlobAsText(filePath) {
 }
 
 async function onBodyLoad() {
-	// load aria2web.xsl.
-	var xslText = await readFileBlobAsText("aria2web.xsl");
-	aria2web_stylesheet = new XSLTProcessor();
+	// load aqua.xsl.
+	var xslText = await readFileBlobAsText("aqua.xsl");
+	aqua_stylesheet = new XSLTProcessor();
 	var xsltDoc = new DOMParser().parseFromString(xslText, "application/xml");
-	aria2web_stylesheet.importStylesheet(xsltDoc.documentElement);
+	aqua_stylesheet.importStylesheet(xsltDoc.documentElement);
 
 	// prepare bank list.
 	loadBankXmlFileList();
 }
 
 async function loadBankXmlFileList() {
-	if (typeof (Aria2WebGetLocalInstrumentsCallback) != "undefined") {
-		Aria2WebGetLocalInstrumentsCallback();
+	if (typeof (AquaGetLocalInstrumentsCallback) != "undefined") {
+		AquaGetLocalInstrumentsCallback();
 	} else {
 		console.log("No local instruments are found. Showing demo UI");
-		Aria2Web.Config.BankXmlFiles = PresetBankXmlFiles;
+		Aqua.Config.BankXmlFiles = PresetBankXmlFiles;
 		onLocalBankFilesUpdated();
 	}
 }
 
 // This is called by either explicitly from this script or via C callback.
 function onLocalBankFilesUpdated() {
-	var bankXmlFiles = Aria2Web.Config.BankXmlFiles;
+	var bankXmlFiles = Aqua.Config.BankXmlFiles;
 
 	results = [];
 	
@@ -54,7 +54,7 @@ function onLocalBankFilesUpdated() {
 				el: '#app',
 				data: {programList: results}
 			});
-			Aria2Web.notifyInitialized();
+			Aqua.notifyInitialized();
 		}
 	});
 }
@@ -117,7 +117,7 @@ async function selectInstrument(el) {
 	var sfzFile = el.getAttribute("a2w-sfz");
 	var programXmlFile = el.getAttribute("a2w-source");
 
-	Aria2Web.notifyChangeProgram(sfzFile);
+	Aqua.notifyChangeProgram(sfzFile);
 	loadProgramXmlOnInstFrame(programXmlFile);
 }
 
@@ -140,7 +140,7 @@ async function loadProgramXmlOnInstFrame(programXmlFile) {
 
 	var programXmlContent = await readFileBlobAsText(programXmlFile);
 	var sourceDoc = new DOMParser().parseFromString(programXmlContent, "application/xml");
-	var resultDoc = aria2web_stylesheet.transformToDocument(sourceDoc);
+	var resultDoc = aqua_stylesheet.transformToDocument(sourceDoc);
 
 	var contentDiv = resultDoc.documentElement.querySelector("body > div");
 

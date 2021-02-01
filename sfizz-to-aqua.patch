@@ -7,21 +7,21 @@ index 89529d09..83aabf4f 100644
  
  #define DEFAULT_SFZ_FILE "/home/paul/Documents/AVL_Percussions/AVL_Drumkits_Percussion-1.0-Alt.sfz"
 -#define SFIZZ_URI "http://sfztools.github.io/sfizz"
-+#define SFIZZ_URI "https://github.com/atsushieno/aria2web"
++#define SFIZZ_URI "https://github.com/atsushieno/aqua"
  #define SFIZZ_PREFIX SFIZZ_URI "#"
 -#define SFIZZ__sfzFile "http://sfztools.github.io/sfizz:sfzfile"
 -#define SFIZZ__numVoices "http://sfztools.github.io/sfizz:numvoices"
 -#define SFIZZ__preloadSize "http://sfztools.github.io/sfizz:preload_size"
 -#define SFIZZ__oversampling "http://sfztools.github.io/sfizz:oversampling"
-+#define SFIZZ__sfzFile "https://github.com/atsushieno/aria2web:sfzfile"
-+#define SFIZZ__numVoices "https://github.com/atsushieno/aria2web:numvoices"
-+#define SFIZZ__preloadSize "https://github.com/atsushieno/aria2web:preload_size"
-+#define SFIZZ__oversampling "https://github.com/atsushieno/aria2web:oversampling"
++#define SFIZZ__sfzFile "https://github.com/atsushieno/aqua:sfzfile"
++#define SFIZZ__numVoices "https://github.com/atsushieno/aqua:numvoices"
++#define SFIZZ__preloadSize "https://github.com/atsushieno/aqua:preload_size"
++#define SFIZZ__oversampling "https://github.com/atsushieno/aqua:oversampling"
  // These ones are just for the worker
 -#define SFIZZ__logStatus "http://sfztools.github.io/sfizz:log_status"
 -#define SFIZZ__checkModification "http://sfztools.github.io/sfizz:check_modification"
-+#define SFIZZ__logStatus "https://github.com/atsushieno/aria2web:log_status"
-+#define SFIZZ__checkModification "https://github.com/atsushieno/aria2web:check_modification"
++#define SFIZZ__logStatus "https://github.com/atsushieno/aqua:log_status"
++#define SFIZZ__checkModification "https://github.com/atsushieno/aqua:check_modification"
  
  #define CHANNEL_MASK 0x0F
  #define MIDI_CHANNEL(byte) (byte & CHANNEL_MASK)

@@ -65,7 +65,7 @@ node_modules/
 .env
 
 # additional items for this app
-aria2web-host
-aria2web-lv2ui.so
-sfizz-aria2web
-a2w-sfizz.stamp
+aqua-host
+aqua-lv2ui.so
+sfizz-aqua
+aqua-sfizz.stamp

@@ -8,40 +8,40 @@ cd external/tiny-process-library && patch -i ../../tiny-process-library-vfork.pa
 fi
 
 $_CXX -g -fpermissive -I external/webview/ -I external/httpserver.h/ \
-	aria2web-host.c \
+	aqua-host.c \
 	`pkg-config --cflags --libs gtk+-3.0 webkit2gtk-4.0` \
-	-o aria2web-host \
+	-o aqua-host \
 	|| exit 1
 $_CXX -g -fpermissive -I external/webview/ -I external/httpserver.h/ \
 	-I external/tiny-process-library \
 	external/tiny-process-library/process.cpp \
 	external/tiny-process-library/process_unix.cpp \
-	aria2web-lv2ui.c \
+	aqua-lv2ui.c \
 	`pkg-config --cflags --libs gtk+-3.0 webkit2gtk-4.0` \
-	-o aria2web-lv2ui.so -shared -fPIC -Wl,--no-undefined \
+	-o aqua-lv2ui.so -shared -fPIC -Wl,--no-undefined \
 	|| exit 1
 
-if [ ! -f a2w-sfizz.stamp ] ; then
+if [ ! -f aqua-sfizz.stamp ] ; then
   cd external/sfizz ;
-  patch -i ../../sfizz-to-a2w.patch -p1 ;
+  patch -i ../../sfizz-to-aqua.patch -p1 ;
   cd ../.. ;
-  touch a2w-sfizz.stamp ;
+  touch aqua-sfizz.stamp ;
 fi
 
-if [ ! -d sfizz-aria2web/dist ] ; then
+if [ ! -d sfizz-aqua/dist ] ; then
   echo "building sfizz..." ;
-  mkdir sfizz-aria2web ;
-  cd sfizz-aria2web ;
+  mkdir sfizz-aqua ;
+  cd sfizz-aqua ;
   CXX=$_CXX CC=$_CC cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=`pwd`/dist ../external/sfizz ;
   make || exit 1 ;
   make install || exit 1 ;
   cd .. ;
 fi
 
-DSTLV2=sfizz-aria2web/dist/lib/lv2/sfizz.lv2/
-cp aria2web-lv2ui.so $DSTLV2
-cp aria2web.ttl $DSTLV2
+DSTLV2=sfizz-aqua/dist/lib/lv2/sfizz.lv2/
+cp aqua-lv2ui.so $DSTLV2
+cp aqua.ttl $DSTLV2
 cp manifest.ttl $DSTLV2
-cp aria2web-host $DSTLV2
+cp aqua-host $DSTLV2
 cp -R web $DSTLV2
 echo "build successfully completed."

@@ -12,9 +12,9 @@
 	  <head>
 		  <script src="../../../webcomponents-lite.js"><xsl:text> </xsl:text></script>
 		  <script src="../../../webaudio-controls.js"><xsl:text> </xsl:text></script>
-		  <script src="../../../aria2web.js"><xsl:text> </xsl:text></script>
+		  <script src="../../../aqua.js"><xsl:text> </xsl:text></script>
 		  <script type="text/javascript"><xsl:comment>
-		  document.Aria2WebInstrument = "<xsl:value-of select="$InstrumentProgramId" />";
+		  document.AquaInstrument = "<xsl:value-of select="$InstrumentProgramId" />";
 		  </xsl:comment></script>
 	  </head>
       <body onload="setupWebAudioControlEvents()">

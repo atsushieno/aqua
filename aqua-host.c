@@ -1,8 +1,8 @@
 #define HTTPSERVER_IMPL
-#define ARIA2WEB_IMPL
-#include "aria2web.h"
+#define AQUA_IMPL
+#include "aqua.h"
 
-bool standalone{TRUE};
+bool standalone{true};
 
 /*
   The standalone app is used for debugging as well as the UI remote process for LV2 UI.
@@ -52,8 +52,8 @@ void change_program_callback(void* context, const char* sfzFilename)
 	}
 }
 
-void* launch_aria2web(void* context) {
-	aria2web_start((aria2web*) context);
+void* launch_aqua(void* context) {
+	aqua_start((aqua*) context);
 	return nullptr;
 };
 
@@ -66,7 +66,7 @@ int main(int argc, char** argv) {
 
 	for (int i = 1; i < argc; i++)
 		if (strcmp(argv[i], "--plugin") == 0)
-			standalone = FALSE;
+			standalone = false;
 
 	char* rpath = realpath(argv[0], nullptr);
 	*strrchr(rpath, '/') = '\0';
@@ -74,25 +74,25 @@ int main(int argc, char** argv) {
 	free(rpath);
 	path = path + "/web";
 
-	printf("#aria2web-host: started. Web directory is %s \n", path.c_str());
+	printf("#aqua-host: started. Web directory is %s \n", path.c_str());
 	fflush(stdout);
 
-	auto a2w = aria2web_create(path.c_str());
-	aria2web_set_initialized_callback(a2w, initialized_callback, nullptr);
-	aria2web_set_control_change_callback(a2w, control_change_callback, nullptr);
-	aria2web_set_note_callback(a2w, note_callback, nullptr);
-	aria2web_set_change_program_callback(a2w, change_program_callback, nullptr);
+	auto aqua = aqua_create(path.c_str());
+	aqua_set_initialized_callback(aqua, initialized_callback, nullptr);
+	aqua_set_control_change_callback(aqua, control_change_callback, nullptr);
+	aqua_set_note_callback(aqua, note_callback, nullptr);
+	aqua_set_change_program_callback(aqua, change_program_callback, nullptr);
 
-	pthread_t a2w_thread;
-	pthread_create(&a2w_thread, nullptr, launch_aria2web, a2w);
-	while (!a2w->webview_ready)
+	pthread_t aqua_thread;
+	pthread_create(&aqua_thread, nullptr, launch_aqua, aqua);
+	while (!aqua->webview_ready)
 		usleep(1000);
 	if (standalone)
 		puts("Type \"quit\" (all in lowercase) to stop");
 	char input[1024];
 	while (1) {
 		if (!fgets(input, 1023, stdin)) {
-			puts("#aria2web-host: error - could not read input. aborting.");
+			puts("#aqua-host: error - could not read input. aborting.");
 			break;
 		}
 		int len = strlen(input);
@@ -103,15 +103,15 @@ int main(int argc, char** argv) {
 		if (strcmp(input, "quit") == 0)
 			break;
 		else if (strcmp(input, "hide") == 0)
-			aria2web_hide_window(a2w);
+			aqua_hide_window(aqua);
 		else if (strcmp(input, "show") == 0)
-			aria2web_show_window(a2w);
+			aqua_show_window(aqua);
 		else if (strncmp(input, "SFZ ", 4) == 0)
-			aria2web_load_sfz(a2w, input + 4);
+			aqua_load_sfz(aqua, input + 4);
 		else
-			printf("#aria2web-host: unknown user input (after removing CR/LF): %s\n", input);
+			printf("#aqua-host: unknown user input (after removing CR/LF): %s\n", input);
 	}
-	puts("#aria2web-host: stopped");
-	aria2web_stop(a2w);
-	aria2web_free(a2w);
+	puts("#aqua-host: stopped");
+	aqua_stop(aqua);
+	aqua_free(aqua);
 }

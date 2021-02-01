@@ -2,25 +2,25 @@
 
 /* These functions should be part of the public API */
 
-typedef struct aria2web_tag aria2web;
+typedef struct Aqua_tag Aqua;
 /* The value and velocity could be float, but webaudio-controls seems to handle them in integer. */
-typedef void(* aria2web_initialized_callback)(void* context);
-typedef void(* aria2web_control_change_callback)(void* context, int cc, int value);
-typedef void(* aria2web_note_callback)(void* context, int key, int velocity);
-typedef void(* aria2web_change_program_callback)(void* context, const char* sfzFilename);
+typedef void(* aqua_initialized_callback)(void* context);
+typedef void(* aqua_control_change_callback)(void* context, int cc, int value);
+typedef void(* aqua_note_callback)(void* context, int key, int velocity);
+typedef void(* aqua_change_program_callback)(void* context, const char* sfzFilename);
 
-aria2web* aria2web_create(const char* webLocalFilePath);
-void aria2web_start(aria2web* context, void* parentWindow = nullptr);
-void aria2web_set_initialized_callback(aria2web* a2w, aria2web_initialized_callback callback, void* context);
-void aria2web_set_control_change_callback(aria2web* a2w, aria2web_control_change_callback callback, void* context);
-void aria2web_set_note_callback(aria2web* a2w, aria2web_note_callback callback, void* context);
-void aria2web_set_change_program_callback(aria2web* a2w, aria2web_change_program_callback callback, void* context);
-void aria2web_stop(aria2web* context);
-void* aria2web_get_native_widget(aria2web* instance);
+Aqua* aqua_create(const char* webLocalFilePath);
+void aqua_start(Aqua* context, void* parentWindow = nullptr);
+void aqua_set_initialized_callback(Aqua* aqua, aqua_initialized_callback callback, void* context);
+void aqua_set_control_change_callback(Aqua* aqua, aqua_control_change_callback callback, void* context);
+void aqua_set_note_callback(Aqua* aqua, aqua_note_callback callback, void* context);
+void aqua_set_change_program_callback(Aqua* aqua, aqua_change_program_callback callback, void* context);
+void aqua_stop(Aqua* context);
+void* aqua_get_native_widget(Aqua* instance);
 
 /* The rest of the code is private */
 
-#ifdef ARIA2WEB_IMPL
+#ifdef AQUA_IMPL
 
 #include <stdio.h>
 #include <sys/types.h>
@@ -36,14 +36,14 @@ void* aria2web_get_native_widget(aria2web* instance);
 #include <webview.h>
 #include <httpserver.h>
 
-void* a2w_run_http_server(void* context);
-void* a2w_run_webview_loop(void* context);
+void* aqua_run_http_server(void* context);
+void* aqua_run_webview_loop(void* context);
 
 void log_debug(const char* s) { puts(s); }
 
 static int confirmed_port = -1;
 
-int a2w_get_http_server_port_number()
+int aqua_get_http_server_port_number()
 {
 	if (confirmed_port > 0)
 		return confirmed_port;
@@ -61,7 +61,7 @@ int a2w_get_http_server_port_number()
 		if (bind(sfd, (struct sockaddr *) &addr, sizeof(struct sockaddr_in)) != -1) {
 			close(sfd);
 			confirmed_port = port;
-			printf("# aria2web using port %d\n", port);
+			printf("# aqua using port %d\n", port);
 			fflush(stdout);
 			return port;
 		}
@@ -69,7 +69,7 @@ int a2w_get_http_server_port_number()
     }
 }
 
-typedef struct aria2web_tag {
+typedef struct Aqua_tag {
 	pthread_t http_server_thread{0};
 	std::string web_local_file_path{};
 	std::unique_ptr<std::vector<std::string>> local_instrument_files{nullptr};
@@ -80,26 +80,26 @@ typedef struct aria2web_tag {
 	bool http_server_started{false};
 	bool webview_ready{false};
 	void* component_ref{nullptr};
-	aria2web_initialized_callback initialized_callback{nullptr};
+	aqua_initialized_callback initialized_callback{nullptr};
 	void* initialized_callback_context{nullptr};
-	aria2web_control_change_callback control_change_callback{nullptr};
+	aqua_control_change_callback control_change_callback{nullptr};
 	void* cc_callback_context{nullptr};
-	aria2web_note_callback note_callback{nullptr};
+	aqua_note_callback note_callback{nullptr};
 	void* note_callback_context{nullptr};
-	aria2web_change_program_callback change_program_callback{nullptr};
+	aqua_change_program_callback change_program_callback{nullptr};
 	void* change_program_callback_context{nullptr};
 
 	void start(void* parentWindow = nullptr)
 	{
-		pthread_create(&http_server_thread, NULL, a2w_run_http_server, this);
-		pthread_setname_np(http_server_thread, "aria2web_httpserver");
+		pthread_create(&http_server_thread, NULL, aqua_run_http_server, this);
+		pthread_setname_np(http_server_thread, "aqua_httpserver");
 		struct timespec tm;
 		tm.tv_sec = 0;
 		tm.tv_nsec = 1000;
 		while (!http_server_started)
 			usleep(1000);
 		parent_window = parentWindow;
-		a2w_run_webview_loop(this);
+		aqua_run_webview_loop(this);
 	}
 
 	void stop()
@@ -108,23 +108,23 @@ typedef struct aria2web_tag {
 		pthread_cancel(http_server_thread);
 	}
 
-} aria2web;
+} aqua;
 
-aria2web* aria2web_create(const char* webLocalFilePath) {
-	auto ret = new aria2web(); 
+Aqua* aqua_create(const char* webLocalFilePath) {
+	auto ret = new aqua(); 
 	ret->web_local_file_path = strdup(webLocalFilePath);
 	return ret;
 }
 
-void aria2web_free(aria2web* instance) {
+void aqua_free(Aqua* instance) {
 	delete instance;
 }
 
-void aria2web_start(aria2web* instance, void* parentWindow) { instance->start(parentWindow); }
+void aqua_start(Aqua* instance, void* parentWindow) { instance->start(parentWindow); }
 
-void aria2web_stop(aria2web* instance) { instance->stop(); }
+void aqua_stop(Aqua* instance) { instance->stop(); }
 
-void* aria2web_get_native_widget(aria2web* instance) {
+void* aqua_get_native_widget(Aqua* instance) {
 	return instance->webview_widget;
 }
 
@@ -171,7 +171,7 @@ const char* get_mime_type_from_filename(char* filename) {
   Keep in mind that this is a local application which is not as secure as web pages.
  */
 void handle_request(struct http_request_s* request) {
-	auto a2w = (aria2web*) http_request_server_userdata(request);
+	auto aqua = (Aqua*) http_request_server_userdata(request);
 
 	struct http_response_s* response = http_response_init();
 
@@ -187,14 +187,14 @@ void handle_request(struct http_request_s* request) {
 	const char* mimeType = get_mime_type_from_filename(targetPath);
 
 	std::string filePath{};
-	for (auto dir : *a2w->local_instrument_dirs) {
+	for (auto dir : *aqua->local_instrument_dirs) {
 		if (strncmp(dir.c_str(), targetPath + 1, dir.length()) == 0) {
 			filePath = std::string{targetPath + 1};
 			break;
 		}
 	}
 	if (filePath.length() == 0)
-		filePath = a2w->web_local_file_path.length() > 0 ? a2w->web_local_file_path + "/" + targetPath : targetPath;
+		filePath = aqua->web_local_file_path.length() > 0 ? aqua->web_local_file_path + "/" + targetPath : targetPath;
 
 	int fd = open(filePath.c_str(), O_RDONLY);
 	free(targetPath);
@@ -215,68 +215,67 @@ void handle_request(struct http_request_s* request) {
 	}
 }
 
-void* a2w_run_http_server(void* context) {
-	auto a2w = (aria2web*) context;
-	struct http_server_s* server = http_server_init(a2w_get_http_server_port_number(), handle_request);
-	http_server_set_userdata(server, a2w);
-	a2w->http_server_started = TRUE;
+void* aqua_run_http_server(void* context) {
+	auto aqua = (Aqua*) context;
+	struct http_server_s* server = http_server_init(aqua_get_http_server_port_number(), handle_request);
+	http_server_set_userdata(server, aqua);
+	aqua->http_server_started = TRUE;
 	http_server_listen(server);
 	return nullptr;
 }
 
-void aria2web_show_window(aria2web* a2w)
+void aqua_show_window(Aqua* aqua)
 {
-	gtk_widget_show((GtkWidget*) webview_get_window((webview_t) a2w->webview));
 }
 
-void aria2web_hide_window(aria2web* a2w)
+void aqua_hide_window(Aqua* aqua)
 {
-	gtk_widget_hide((GtkWidget*) webview_get_window((webview_t) a2w->webview));
+	gtk_widget_hide((GtkWidget*) webview_get_window((webview_t) aqua->webview));
 }
 
 typedef struct {
-	aria2web *a2w;
+	Aqua *aqua;
 	const char* sfzfile;
 } load_sfz_ctx;
 
 int do_load_sfz(void* context) {
 	auto ctx = (load_sfz_ctx*) context;
-	auto js_log = std::string{} + "console.log('aria2web.h: loading UI via SFZ by host request: " + ctx->sfzfile + "');";
-	webview_eval((webview_t) ctx->a2w->webview, js_log.c_str());
+	auto js_log = std::string{} + "console.log('aqua.h: loading UI via SFZ by host request: " + ctx->sfzfile + "');";
+	webview_eval((webview_t) ctx->aqua->webview, js_log.c_str());
 	auto js = std::string{} + "loadInstrumentFromSfz('" + ctx->sfzfile + "');";
-	webview_eval((webview_t) ctx->a2w->webview, js.c_str());
+	webview_eval((webview_t) ctx->aqua->webview, js.c_str());
 	free(ctx);
 	return false;
 }
 
-void aria2web_load_sfz(aria2web* a2w, const char* sfzfile)
+void aqua_load_sfz(Aqua* aqua, const char* sfzfile)
 {
-	auto ctx = new load_sfz_ctx{a2w, sfzfile};
+	auto ctx = new load_sfz_ctx{aqua, sfzfile};
 	g_idle_add(do_load_sfz, ctx);
 }
 
-void aria2web_set_initialized_callback(aria2web* a2w, aria2web_initialized_callback callback, void* callbackContext)
+void aqua_set_initialized_callback(Aqua* aqua, aqua_initialized_callback callback, void* callbackContext)
 {
-	a2w->initialized_callback = callback;
-	a2w->initialized_callback_context = callbackContext;
+	aqua->initialized_callback = callback;
+	aqua->initialized_callback_context = callbackContext;
 }
 
-void aria2web_set_control_change_callback(aria2web* a2w, aria2web_control_change_callback callback, void* callbackContext)
+void aqua_set_control_change_callback(Aqua* aqua, aqua_control_change_callback callback, void* callbackContext)
 {
-	a2w->control_change_callback = callback;
-	a2w->cc_callback_context = callbackContext;
+	aqua->control_change_callback = callback;
+	aqua->cc_callback_context = callbackContext;
 }
 
-void aria2web_set_note_callback(aria2web* a2w, aria2web_note_callback callback, void* callbackContext)
+void aqua_set_note_callback(Aqua* aqua, aqua_note_callback callback, void* callbackContext)
 {
-	a2w->note_callback = callback;
-	a2w->note_callback_context = callbackContext;
+	aqua->note_callback = callback;
+	aqua->note_callback_context = callbackContext;
 }
 
-void aria2web_set_change_program_callback(aria2web* a2w, aria2web_change_program_callback callback, void* callbackContext)
+void aqua_set_change_program_callback(Aqua* aqua, aqua_change_program_callback callback, void* callbackContext)
 {
-	a2w->change_program_callback = callback;
-	a2w->change_program_callback_context = callbackContext;
+	aqua->change_program_callback = callback;
+	aqua->change_program_callback_context = callbackContext;
 }
 
 void parse_js_two_array_items(const char* req, int* ret1, int* ret2)
@@ -297,11 +296,11 @@ void parse_js_two_array_items(const char* req, int* ret1, int* ret2)
 }
 
 void webview_callback_initialized(const char *seq, const char *req, void *arg) {
-	auto a2w = (aria2web*) arg;
-	if (a2w && a2w->initialized_callback)
-		a2w->initialized_callback(a2w->initialized_callback_context);
+	auto aqua = (Aqua*) arg;
+	if (aqua && aqua->initialized_callback)
+		aqua->initialized_callback(aqua->initialized_callback_context);
 	else {
-		log_debug("# aria2web.h: 'initialized' callback is invoked");
+		log_debug("# aqua.h: 'initialized' callback is invoked");
 	}
 }
 
@@ -309,11 +308,11 @@ void webview_callback_control_change(const char *seq, const char *req, void *arg
 	int cc = 0, val = 0;
 	parse_js_two_array_items(req, &cc, &val);
 
-	auto a2w = (aria2web*) arg;
-	if (a2w && a2w->control_change_callback)
-		a2w->control_change_callback(a2w->cc_callback_context, cc, val);
+	auto aqua = (Aqua*) arg;
+	if (aqua && aqua->control_change_callback)
+		aqua->control_change_callback(aqua->cc_callback_context, cc, val);
 	else {
-		log_debug("# aria2web.h: control change callback is invoked");
+		log_debug("# aqua.h: control change callback is invoked");
 		log_debug(seq);
 		log_debug(req);
 		log_debug(arg != NULL ? "not null" : "null");
@@ -324,11 +323,11 @@ void webview_callback_note(const char *seq, const char *req, void *arg) {
 	int state = 0, key = 0;
 	parse_js_two_array_items(req, &state, &key);
 
-	auto a2w = (aria2web*) arg;
-	if (a2w && a2w->note_callback)
-		a2w->note_callback(a2w->note_callback_context, key, state ? 127 : 0);
+	auto aqua = (Aqua*) arg;
+	if (aqua && aqua->note_callback)
+		aqua->note_callback(aqua->note_callback_context, key, state ? 127 : 0);
 	else {
-		log_debug("# aria2web.h: note callback is invoked");
+		log_debug("# aqua.h: note callback is invoked");
 		log_debug(seq);
 		log_debug(req);
 		log_debug(arg != NULL ? "not null" : "null");
@@ -336,15 +335,15 @@ void webview_callback_note(const char *seq, const char *req, void *arg) {
 }
 
 void webview_callback_change_program(const char *seq, const char *req, void *arg) {
-	auto a2w = (aria2web*) arg;
+	auto aqua = (Aqua*) arg;
 	// req = ["filename"] so skip first two bytes and trim last two bytes.
 	auto s = strdup(req);
 	s[strlen(s) - 2] = '\0';
 
-	if (a2w && a2w->control_change_callback)
-		a2w->change_program_callback(a2w->cc_callback_context, s + 2);
+	if (aqua && aqua->control_change_callback)
+		aqua->change_program_callback(aqua->cc_callback_context, s + 2);
 	else {
-		log_debug("# aria2web.h: change program callback is invoked");
+		log_debug("# aqua.h: change program callback is invoked");
 		log_debug(seq);
 		log_debug(req);
 		log_debug(arg != NULL ? "not null" : "null");
@@ -353,18 +352,18 @@ void webview_callback_change_program(const char *seq, const char *req, void *arg
 }
 
 void webview_callback_get_local_instruments(const char *seq, const char *req, void *arg) {
-	auto a2w = (aria2web*) arg;
+	auto aqua = (Aqua*) arg;
 
 	std::string fileList{};
-	std::string aria2web_config_file{getenv("HOME")};
-	aria2web_config_file += "/.config/aria2web.config";
+	std::string aqua_config_file{getenv("HOME")};
+	aqua_config_file += "/.config/aqua.config";
 	struct stat cfgStat;
-	if (stat(aria2web_config_file.c_str(), &cfgStat) == 0) {
-		FILE *fp = fopen(aria2web_config_file.c_str(), "r");
+	if (stat(aqua_config_file.c_str(), &cfgStat) == 0) {
+		FILE *fp = fopen(aqua_config_file.c_str(), "r");
 		if (fp != nullptr) {
 			char buf[1024];
-			a2w->local_instrument_files->clear();
-			a2w->local_instrument_dirs->clear();
+			aqua->local_instrument_files->clear();
+			aqua->local_instrument_dirs->clear();
 			while (!feof(fp)) {
 				buf[0] = '\0';
 				fgets(&buf[0], 1023, fp);
@@ -375,22 +374,22 @@ void webview_callback_get_local_instruments(const char *seq, const char *req, vo
 					continue; // empty line
 				fileList += (fileList.length() == 0 ? "" : ", ");
 				fileList += "\"";
-				a2w->local_instrument_files->emplace_back(std::string{buf});
+				aqua->local_instrument_files->emplace_back(std::string{buf});
 				fileList += buf;
 				fileList += "\"";
 
 				if (strrchr(buf, '/') != nullptr)
 					*strrchr(buf, '/') = '\0';
-				a2w->local_instrument_dirs->emplace_back(std::string{buf});
+				aqua->local_instrument_dirs->emplace_back(std::string{buf});
 			}
 		} else {
-			printf("#aria2web.h: failed to load config file %s...\n", aria2web_config_file.c_str());
+			printf("#aqua.h: failed to load config file %s...\n", aqua_config_file.c_str());
 			fflush(stdout);
 		}
 	}
-	std::string cfgJS{"Aria2Web.Config={BankXmlFiles: [" + fileList + "]}; onLocalBankFilesUpdated();"};
+	std::string cfgJS{"Aqua.Config={BankXmlFiles: [" + fileList + "]}; onLocalBankFilesUpdated();"};
 
-	webview_eval(a2w->webview, cfgJS.c_str());
+	webview_eval(aqua->webview, cfgJS.c_str());
 }
 
 void on_dispatch(webview_t w, void* context) {
@@ -399,32 +398,32 @@ void on_dispatch(webview_t w, void* context) {
 
 // It used to be implemented to run on a dedicated thread, which still worked as a standalone UI
 // but as a plugin which is loaded and run under DAW GUI it violates UI threading principle, so
-// it was rewritten to run within the callers (a2w) thread.
-void* a2w_run_webview_loop(void* context) {
+// it was rewritten to run within the callers (aqua) thread.
+void* aqua_run_webview_loop(void* context) {
 	const char* urlfmt = "http://localhost:%d/index.html";
-	int port = a2w_get_http_server_port_number();
+	int port = aqua_get_http_server_port_number();
 	char* url = strdup(urlfmt);
 	sprintf(url, urlfmt, port);
 
-	auto a2w = (aria2web*) context;
-	a2w->local_instrument_files.reset(new std::vector<std::string>());
-	a2w->local_instrument_dirs.reset(new std::vector<std::string>());
-	void* w = a2w->webview = webview_create(true, nullptr);
-	webview_set_title(w, "Aria2Web embedded example");
+	auto aqua = (Aqua*) context;
+	aqua->local_instrument_files.reset(new std::vector<std::string>());
+	aqua->local_instrument_dirs.reset(new std::vector<std::string>());
+	void* w = aqua->webview = webview_create(true, nullptr);
+	webview_set_title(w, "Aqua embedded example");
 	webview_set_size(w, 1200, 450, WEBVIEW_HINT_NONE);
-	webview_bind(w, "Aria2WebInitializedCallback", webview_callback_initialized, context);
-	webview_bind(w, "Aria2WebControlChangeCallback", webview_callback_control_change, context);
-	webview_bind(w, "Aria2WebNoteCallback", webview_callback_note, context);
-	webview_bind(w, "Aria2WebChangeProgramCallback", webview_callback_change_program, context);
-	webview_bind(w, "Aria2WebGetLocalInstrumentsCallback", webview_callback_get_local_instruments, context);
+	webview_bind(w, "AquaInitializedCallback", webview_callback_initialized, context);
+	webview_bind(w, "AquaControlChangeCallback", webview_callback_control_change, context);
+	webview_bind(w, "AquaNoteCallback", webview_callback_note, context);
+	webview_bind(w, "AquaChangeProgramCallback", webview_callback_change_program, context);
+	webview_bind(w, "AquaGetLocalInstrumentsCallback", webview_callback_get_local_instruments, context);
 
 	webview_dispatch(w, on_dispatch, context);
 	webview_navigate(w, url);
 	gtk_window_set_deletable((GtkWindow*) webview_get_window(w), FALSE);
 	free(url);
-	a2w->webview_ready = TRUE;
+	aqua->webview_ready = TRUE;
 	webview_run(w);
 	return nullptr;
 }
 
-#endif /* ARIA2WEB_IMPL */
+#endif /* AQUA_IMPL */

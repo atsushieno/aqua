@@ -48,7 +48,7 @@
                             <div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; ">
                                 LV2 Plugin UI
                                 <br/>
-                                (aria2web-lv2ui.so)
+                                (aqua-lv2ui.so)
                             </div>
                         </div>
                     </div>
@@ -65,7 +65,7 @@
                     <div xmlns="http://www.w3.org/1999/xhtml" style="display: flex; align-items: unsafe flex-end; justify-content: unsafe center; width: 178px; height: 1px; padding-top: 237px; margin-left: 391px;">
                         <div style="box-sizing: border-box; font-size: 0; text-align: center; ">
                             <div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: #000000; line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; ">
-                                aria2web-host
+                                aqua-host
                                 <br/>
                                 (standalone executable)
                             </div>
@@ -73,7 +73,7 @@
                     </div>
                 </foreignObject>
                 <text x="480" y="237" fill="#000000" font-family="Helvetica" font-size="12px" text-anchor="middle">
-                    aria2web-host...
+                    aqua-host...
                 </text>
             </switch>
         </g>
