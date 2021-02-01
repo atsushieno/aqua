@@ -38,7 +38,9 @@ if [ ! -d sfizz-aqua/dist ] ; then
   cd .. ;
 fi
 
-DSTLV2=sfizz-aqua/dist/lib/lv2/sfizz.lv2/
+mkdir dist
+cp -R sfizz-aqua/dist/lib/lv2/sfizz.lv2/ dist/aqua.lv2
+DSTLV2=dist/aqua.lv2
 cp aqua-lv2ui.so $DSTLV2
 cp aqua.ttl $DSTLV2
 cp manifest.ttl $DSTLV2

@@ -54,7 +54,7 @@ To build native hosting stuff, you will have to install sfizz dependencies such 
 
 (We use a sfizz submodule, with some uncommitted changes to the codebase, which replaces most of the sfizz URI with aqua with `sfizz-to-aqua.patch` (It's an ugly hack, but we should use different name and URI to not conflict with sfizz which may be locally installed.), as well as copied-and-regex-replaced `sfizz.ttl` renamed as `aqua.ttl`.)
 
-As the build result, there will be `sfizz-aqua/dist/lib/lv2/sfizz.lv2` directory. You can either copy the directory into your LV2 plugins directory (e.g. `~/.lv2/`, probably renaming it as `aqua.lv2`) or specify `LV2_PATH` to the directory.
+As the build result, there will be `dist/aqua.lv2` directory. You can either copy the directory into your LV2 plugins directory (e.g. `~/.lv2/`), or specify `LV2_PATH` to the directory.
 
 ### UI architecture
 
