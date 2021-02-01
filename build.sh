@@ -21,11 +21,11 @@ $_CXX -g -fpermissive -I external/webview/ -I external/httpserver.h/ \
 	-o aqua-lv2ui.so -shared -fPIC -Wl,--no-undefined \
 	|| exit 1
 
-if [ ! -f aqua-sfizz.stamp ] ; then
+if [ ! -f external/sfizz/aqua-sfizz.stamp ] ; then
   cd external/sfizz ;
   patch -i ../../sfizz-to-aqua.patch -p1 ;
-  cd ../.. ;
   touch aqua-sfizz.stamp ;
+  cd ../.. ;
 fi
 
 if [ ! -d sfizz-aqua/dist ] ; then
@@ -38,12 +38,12 @@ if [ ! -d sfizz-aqua/dist ] ; then
   cd .. ;
 fi
 
-mkdir dist
+mkdir -p dist
+rm -rf dist/aqua.lv2
 cp -R sfizz-aqua/dist/lib/lv2/sfizz.lv2/ dist/aqua.lv2
 DSTLV2=dist/aqua.lv2
 cp aqua-lv2ui.so $DSTLV2
-cp aqua.ttl $DSTLV2
-cp manifest.ttl $DSTLV2
 cp aqua-host $DSTLV2
 cp -R web $DSTLV2
+rm -rf $DSTLV2/web/banks
 echo "build successfully completed."

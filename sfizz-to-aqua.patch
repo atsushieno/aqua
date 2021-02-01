@@ -1,27 +1,79 @@
-diff --git a/lv2/sfizz.c b/lv2/sfizz.c
-index 89529d09..83aabf4f 100644
---- a/lv2/sfizz.c
-+++ b/lv2/sfizz.c
-@@ -58,15 +58,15 @@
- #include "atomic_compat.h"
+diff --git a/cmake/LV2Config.cmake b/cmake/LV2Config.cmake
+index 0cfc911f..62f1866a 100644
+--- a/cmake/LV2Config.cmake
++++ b/cmake/LV2Config.cmake
+@@ -1,13 +1,13 @@
+ # Configuration for this plugin
+ # TODO: generate version from git
+-set (LV2PLUGIN_VERSION_MINOR   6)
+-set (LV2PLUGIN_VERSION_MICRO   0)
+-set (LV2PLUGIN_NAME            "sfizz")
+-set (LV2PLUGIN_COMMENT         "SFZ sampler")
+-set (LV2PLUGIN_URI             "http://sfztools.github.io/sfizz")
+-set (LV2PLUGIN_REPOSITORY      "https://github.com/sfztools/sfizz")
+-set (LV2PLUGIN_AUTHOR          "SFZTools")
+-set (LV2PLUGIN_EMAIL           "paul@ferrand.cc")
++set (LV2PLUGIN_VERSION_MINOR   0)
++set (LV2PLUGIN_VERSION_MICRO   1)
++set (LV2PLUGIN_NAME            "aqua")
++set (LV2PLUGIN_COMMENT         "sfizz SFZ sampler with ARIA UI XML extension")
++set (LV2PLUGIN_URI             "https://github.com/atsushieno/aqua")
++set (LV2PLUGIN_REPOSITORY      "https://github.com/atsushieno/aqua")
++set (LV2PLUGIN_AUTHOR          "atsushieno")
++set (LV2PLUGIN_EMAIL           "atsushieno@gmail.com")
+ if (SFIZZ_USE_VCPKG)
+     set (LV2PLUGIN_SPDX_LICENSE_ID "LGPL-3.0-only")
+ else()
+diff --git a/lv2/manifest.ttl.in b/lv2/manifest.ttl.in
+index ab407d33..c58ae6d8 100644
+--- a/lv2/manifest.ttl.in
++++ b/lv2/manifest.ttl.in
+@@ -7,7 +7,3 @@
+   lv2:binary <Contents/Binary/@PROJECT_NAME@@CMAKE_SHARED_MODULE_SUFFIX@> ;
+   rdfs:seeAlso <@PROJECT_NAME@.ttl> .
  
- #define DEFAULT_SFZ_FILE "/home/paul/Documents/AVL_Percussions/AVL_Drumkits_Percussion-1.0-Alt.sfz"
+-@LV2PLUGIN_IF_ENABLE_UI@<@LV2PLUGIN_URI@#ui>
+-@LV2PLUGIN_IF_ENABLE_UI@    a ui:@LV2_UI_TYPE@ ;
+-@LV2PLUGIN_IF_ENABLE_UI@    ui:binary <Contents/Binary/@PROJECT_NAME@_ui@CMAKE_SHARED_MODULE_SUFFIX@> ;
+-@LV2PLUGIN_IF_ENABLE_UI@    rdfs:seeAlso <@PROJECT_NAME@_ui.ttl> .
+diff --git a/lv2/sfizz.ttl.in b/lv2/sfizz.ttl.in
+index 5ddd0317..05f24aa8 100644
+--- a/lv2/sfizz.ttl.in
++++ b/lv2/sfizz.ttl.in
+@@ -18,6 +18,7 @@
+ @prefix urid:    <http://lv2plug.in/ns/ext/urid#> .
+ @prefix work:    <http://lv2plug.in/ns/ext/worker#> .
+ @prefix midnam:  <http://ardour.org/lv2/midnam#> .
++@prefix extui:   <http://kxstudio.sf.net/ns/lv2ext/external-ui#> .
+ 
+ midnam:interface a lv2:ExtensionData .
+ midnam:update a lv2:Feature .
+@@ -369,3 +370,13 @@ midnam:update a lv2:Feature .
+     lv2:minimum 0 ;
+     lv2:maximum 65535 ;
+   ] .
++
++<@LV2PLUGIN_URI@#ui>
++  a extui:Widget ;
++  ui:binary <aqua-lv2ui.so> ;
++  ui:portNotification [
++        ui:plugin <https://github.com/atsushieno/aqua> ;
++        lv2:symbol "notify" ;
++        ui:protocol atom:eventTransfer
++  ] .
++
+diff --git a/lv2/sfizz_lv2.h b/lv2/sfizz_lv2.h
+index b0eafe00..05a31f33 100644
+--- a/lv2/sfizz_lv2.h
++++ b/lv2/sfizz_lv2.h
+@@ -8,8 +8,8 @@
+ 
+ #define MAX_PATH_SIZE 1024
+ 
 -#define SFIZZ_URI "http://sfztools.github.io/sfizz"
+-#define SFIZZ_UI_URI "http://sfztools.github.io/sfizz#ui"
 +#define SFIZZ_URI "https://github.com/atsushieno/aqua"
++#define SFIZZ_UI_URI "https://github.com/atsushieno/aqua#ui"
  #define SFIZZ_PREFIX SFIZZ_URI "#"
--#define SFIZZ__sfzFile "http://sfztools.github.io/sfizz:sfzfile"
--#define SFIZZ__numVoices "http://sfztools.github.io/sfizz:numvoices"
--#define SFIZZ__preloadSize "http://sfztools.github.io/sfizz:preload_size"
--#define SFIZZ__oversampling "http://sfztools.github.io/sfizz:oversampling"
-+#define SFIZZ__sfzFile "https://github.com/atsushieno/aqua:sfzfile"
-+#define SFIZZ__numVoices "https://github.com/atsushieno/aqua:numvoices"
-+#define SFIZZ__preloadSize "https://github.com/atsushieno/aqua:preload_size"
-+#define SFIZZ__oversampling "https://github.com/atsushieno/aqua:oversampling"
- // These ones are just for the worker
--#define SFIZZ__logStatus "http://sfztools.github.io/sfizz:log_status"
--#define SFIZZ__checkModification "http://sfztools.github.io/sfizz:check_modification"
-+#define SFIZZ__logStatus "https://github.com/atsushieno/aqua:log_status"
-+#define SFIZZ__checkModification "https://github.com/atsushieno/aqua:check_modification"
- 
- #define CHANNEL_MASK 0x0F
- #define MIDI_CHANNEL(byte) (byte & CHANNEL_MASK)
+ #define SFIZZ__sfzFile SFIZZ_URI ":" "sfzfile"
+ #define SFIZZ__tuningfile SFIZZ_URI ":" "tuningfile"
