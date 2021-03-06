@@ -34,7 +34,7 @@ To use it as a local LV2 plugin, you would need an extra configuration file unde
 
 ## Rationale
 
-The real value in this experimental project lies in that the entire UI is based on **complete** web technology ecosystem, not just part of it. For example, [Blueprint](https://github.com/nick-thompson/blueprint) is a great React integration for audio plugins, but still needs full backend implementation just like React Native (but for its own), which is not going to be complete. Full SVG implementation, HTML5 Canvas, WebGL etc. including full access to the DOM integration, is what we want, to achieve "any Web application authoring tool works" state of union.
+The real value in this experimental project lies in that the entire UI is based on **complete** web technology ecosystem, not just part of it. For example, [react-juce](https://github.com/nick-thompson/react-juce) is a great React integration for audio plugins, but still needs full backend implementation just like React Native (but for its own), which is not going to be full web solution. Full SVG implementation, HTML5 Canvas, WebGL etc. including full access to the DOM integration, is what we want, to achieve "any Web application authoring tool works" state of union.
 
 For example, webaudio-controls is maintained by exactly the same person (g200kg) who also created [KnobMan](https://www.kvraudio.com/product/knobman-by-g200kg) which is most likely used by many ARIA Knob designers. The same image format is widely used by Kontakt nki designers too, they are all the same. It is why aqua achieves so complete UI results.
 
