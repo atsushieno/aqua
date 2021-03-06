@@ -4,7 +4,7 @@
 
 `aqua` is a simple JS+HTML page that brings SFZ [ARIA extensions](https://sfzformat.com/extensions/aria/xml_instrument_bank) XML instrument bank to Web (HTML+SVG) using [g200kg/webaudio-controls](https://github.com/g200kg/webaudio-controls/).
 
-An online demo UI is available at: https://aria2web.firebaseapp.com/ (Note that Web UI is really only for UI, no audio involved. Those sfz soundfonts can be 1GB-ish, which are not suitable for Web Audio in 2020).
+An online demo UI is available at: https://aria2web.firebaseapp.com/ (Note that Web UI is really only for UI, no audio involved. Those sfz samples can be 1GB-ish, which are not suitable for Web Audio in 2020).
 
 Right now we use [Vue.js](https://vuejs.org/) but the templating part is really simple so it can be anything. Maybe we don't even need any.
 
