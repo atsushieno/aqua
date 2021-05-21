@@ -30,13 +30,7 @@ async function onBodyLoad() {
 }
 
 async function loadBankXmlFileList() {
-	if (typeof (AquaGetLocalInstrumentsCallback) != "undefined") {
-		AquaGetLocalInstrumentsCallback();
-	} else {
-		console.log("No local instruments are found. Showing demo UI");
-		Aqua.Config.BankXmlFiles = PresetBankXmlFiles;
-		onLocalBankFilesUpdated();
-	}
+	Aqua.getLocalInstruments();
 }
 
 // This is called by either explicitly from this script or via C callback.
